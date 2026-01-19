@@ -26,7 +26,7 @@
 
         <!-- Header -->
         <header class="header">
-            <div class="logo">ANTIGRAVITY <span style="font-weight: 300; opacity: 0.7;">Backtester</span></div>
+            <div class="logo">HYDRA BOT TRADING <span style="font-weight: 300; opacity: 0.7;">Backtester</span></div>
         </header>
 
         <!-- Config Section -->
@@ -92,20 +92,43 @@
                         <input type="number" id="leverage" value="20">
                     </div>
                     <div class="form-group">
-                        <label>Stop Loss (%)</label>
-                        <input type="number" id="stopLossPct" value="1.0" step="0.1">
-                    </div>
-
-                    <!-- Row 5 -->
-                    <div class="form-group">
                         <label>Comisión (%)</label>
                         <input type="number" id="feePct" value="0.04" step="0.01">
                     </div>
-                    <div class="form-group" style="justify-content: flex-end; padding-bottom: 12px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="checkbox" id="stopAtEntry" style="width: auto; margin: 0;">
-                            <label for="stopAtEntry" style="cursor: pointer; color: var(--text-primary);">Cerrar stop
-                                loss al precio de entrada</label>
+
+
+                    <!-- Row 4: Stop Loss Options -->
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Gestión de Stop Loss (Solo uno activo)</label>
+
+                        <!-- 1. Fixed Stop -->
+                        <div class="stop-option-row"
+                            style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <input type="checkbox" id="useFixedSL" checked onchange="handleStopExclusion('FIXED')"
+                                style="width: auto; margin: 0;">
+                            <label for="useFixedSL" style="width: 120px;">Stop Fijo (%):</label>
+                            <input type="number" id="stopLossPct" value="1.0" step="0.1" style="width: 80px;"
+                                oninput="updateUsdtValues()">
+                            <span id="fixedUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
+                        </div>
+
+                        <!-- 2. Breakeven -->
+                        <div class="stop-option-row"
+                            style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <input type="checkbox" id="useBreakeven" onchange="handleStopExclusion('BREAKEVEN')"
+                                style="width: auto; margin: 0;">
+                            <label for="useBreakeven" style="width: 120px;">Stop Breakeven</label>
+                            <span style="font-size: 0.85rem; color: #888;">(Cierra en precio entrada)</span>
+                        </div>
+
+                        <!-- 3. Trailing Stop -->
+                        <div class="stop-option-row" style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="useTrailing" onchange="handleStopExclusion('TRAILING')"
+                                style="width: auto; margin: 0;">
+                            <label for="useTrailing" style="width: 120px;">Trailing (%):</label>
+                            <input type="number" id="trailingPct" value="1.0" step="0.1" style="width: 80px;" disabled
+                                oninput="updateUsdtValues()">
+                            <span id="trailingUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
                         </div>
                     </div>
 
@@ -117,6 +140,7 @@
                             <option value="OPEN_ENTRY">Entrada en apertura siguiente</option>
                             <option value="SPIRIT">Estrategia Spirit (Re-entradas)</option>
                             <option value="SPIRIT_IMPROVED">Spirit Mejorado (Re-entrada sig. vela)</option>
+                            <option value="SPIRIT_TRAILING">Spirit Trailing (Re-entra con Trailing)</option>
                         </select>
                     </div>
 

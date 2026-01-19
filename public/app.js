@@ -172,10 +172,58 @@ function renderSuggestions(matches, showRecentHeader = false) {
     list.style.display = 'block';
 }
 
+
+
+function handleStopExclusion(type) {
+    const fixed = document.getElementById('useFixedSL');
+    const breakeven = document.getElementById('useBreakeven');
+    const trailing = document.getElementById('useTrailing');
+
+    // Uncheck others
+    if (type === 'FIXED' && fixed.checked) {
+        breakeven.checked = false;
+        trailing.checked = false;
+    } else if (type === 'BREAKEVEN' && breakeven.checked) {
+        fixed.checked = false;
+        trailing.checked = false;
+    } else if (type === 'TRAILING' && trailing.checked) {
+        fixed.checked = false;
+        breakeven.checked = false;
+    }
+
+    // Enable/Disable inputs
+    document.getElementById('stopLossPct').disabled = !fixed.checked;
+    document.getElementById('trailingPct').disabled = !trailing.checked;
+
+    updateUsdtValues();
+}
+
+function updateUsdtValues() {
+    const margin = parseFloat(document.getElementById('orderSize').value) || 0;
+    const lev = parseFloat(document.getElementById('leverage').value) || 1;
+    const positionSize = margin * lev;
+
+    // Fixed Calc
+    const fixedPct = parseFloat(document.getElementById('stopLossPct').value) || 0;
+    const fixedUsdt = positionSize * (fixedPct / 100);
+    document.getElementById('fixedUsdt').innerText = fixedUsdt.toFixed(2) + ' USDT';
+
+    // Trailing Calc
+    const trailPct = parseFloat(document.getElementById('trailingPct').value) || 0;
+    const trailUsdt = positionSize * (trailPct / 100);
+    document.getElementById('trailingUsdt').innerText = trailUsdt.toFixed(2) + ' USDT';
+}
+
 async function runBacktest() {
     const runBtn = document.getElementById('runBtn');
     runBtn.innerText = 'Corriendo...';
     runBtn.disabled = true;
+
+    // Determine valid SL Mode
+    let derivedMode = 'FIXED'; // default
+    if (document.getElementById('useBreakeven').checked) derivedMode = 'BREAKEVEN';
+    else if (document.getElementById('useTrailing').checked) derivedMode = 'TRAILING';
+    else if (!document.getElementById('useFixedSL').checked) derivedMode = 'NONE'; // If none checked? Or treat as Fixed 0?
 
     const config = {
         symbol: document.getElementById('symbol').value,
@@ -187,7 +235,8 @@ async function runBacktest() {
         feePct: document.getElementById('feePct').value,
         direction: document.getElementById('direction').value,
         strategy: document.getElementById('strategy').value,
-        stopAtEntry: document.getElementById('stopAtEntry').checked,
+        slMode: derivedMode,
+        trailingPct: document.getElementById('trailingPct').value,
         startDate: document.getElementById('startDate').value,
         endDate: document.getElementById('endDate').value
     };
