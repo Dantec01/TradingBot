@@ -1,2 +1,2 @@
 # TradingBot
-Este es bot premium de trading de criptomonedas
+Este es un bot premium de trading de criptomonedas
