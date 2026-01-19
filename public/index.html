@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Backtester</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Outfit:wght@500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="results.css">
+    <link rel="stylesheet" href="suggestions.css">
+
+    <!-- Lightweight Charts -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">ANTIGRAVITY <span style="font-weight: 300; opacity: 0.7;">Backtester</span></div>
+        </header>
+
+        <!-- Config Section -->
+        <div class="card">
+            <div style="margin-bottom: 20px;">
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Configuración de la Prueba
+                </h2>
+                <p style="color: var(--text-secondary); margin-top: 5px; font-size: 0.9rem;">Simulación de estrategia
+                    Range Filter 100 con gestión de riesgo.</p>
+            </div>
+
+            <form id="backtestForm" onsubmit="event.preventDefault(); runBacktest();">
+                <div class="config-grid">
+                    <!-- Row 1 -->
+                    <div class="form-group" style="position: relative;">
+                        <label>Moneda (Ej: BTC, ETH)</label>
+                        <div class="input-with-clear">
+                            <input type="text" id="symbol" value="BTC" placeholder="Buscar moneda..."
+                                autocomplete="off">
+                            <button type="button" id="clearSymbol" class="clear-btn" title="Borrar">&times;</button>
+                        </div>
+                        <div id="symbolSuggestions" class="suggestions-list"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Temporalidad</label>
+                        <select id="timeframe">
+                            <option value="5m">5 Minutos</option>
+                            <option value="15m" selected>15 Minutos</option>
+                            <option value="1h">1 Hora</option>
+                            <option value="4h">4 Horas</option>
+                            <option value="1d">1 Día</option>
+                        </select>
+                    </div>
+
+                    <!-- Row 2 -->
+                    <div class="form-group">
+                        <label>Fecha Inicio</label>
+                        <input type="date" id="startDate" value="2026-01-01">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha Fin</label>
+                        <input type="date" id="endDate" value="2026-01-18">
+                    </div>
+
+                    <!-- Row 3 -->
+                    <div class="form-group">
+                        <label>Capital Total (USDT)</label>
+                        <input type="number" id="initialCapital" value="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Tamaño de la Orden (USDT)</label>
+                        <input type="number" id="orderSize" value="10">
+                    </div>
+
+                    <!-- Row 4 -->
+                    <div class="form-group">
+                        <label>Apalancamiento (x)</label>
+                        <input type="number" id="leverage" value="20">
+                    </div>
+                    <div class="form-group">
+                        <label>Stop Loss (%)</label>
+                        <input type="number" id="stopLossPct" value="1.0" step="0.1">
+                    </div>
+
+                    <!-- Row 5 -->
+                    <div class="form-group">
+                        <label>Comisión (%)</label>
+                        <input type="number" id="feePct" value="0.04" step="0.01">
+                    </div>
+                    <div class="form-group" style="justify-content: flex-end; padding-bottom: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="stopAtEntry" style="width: auto; margin: 0;">
+                            <label for="stopAtEntry" style="cursor: pointer; color: var(--text-primary);">Cerrar stop
+                                loss al precio de entrada</label>
+                        </div>
+                    </div>
+
+                    <!-- Row 6: Strategy -->
+                    <div class="form-group">
+                        <label>Estrategia de Entrada</label>
+                        <select id="strategy">
+                            <option value="CLOSE_ENTRY" selected>Entrada al cierre de vela (Por defecto)</option>
+                            <option value="OPEN_ENTRY">Entrada en apertura siguiente</option>
+                            <option value="SPIRIT">Estrategia Spirit (Re-entradas)</option>
+                        </select>
+                    </div>
+
+                    <!-- Row 7: Direction -->
+                    <div class="form-group">
+                        <label>Dirección</label>
+                        <select id="direction">
+                            <option value="BOTH">Long &amp; Short</option>
+                            <option value="LONG">Solo Long</option>
+                            <option value="SHORT">Solo Short</option>
+                        </select>
+                    </div>
+
+                    <!-- Run Button -->
+                    <div class="form-group" style="justify-content: flex-end;">
+                        <button type="submit" class="btn-primary" id="runBtn">Ejecutar Prueba</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" style="display: none; margin-top: 2rem;">
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card" id="card-roi">
+                    <div class="stat-value" id="roi">---</div>
+                    <label>Retorno Total (ROI)</label>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="finalBalance">---</div>
+                    <label>Balance Final</label>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="winRate">---</div>
+                    <label>Tasa de Acierto</label>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTrades">---</div>
+                    <label>Total Trades</label>
+                </div>
+            </div>
+
+            <!-- Trades History -->
+            <div class="card" style="margin-top: 2rem; padding: 0; overflow: hidden;">
+                <div style="padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
+                    <h3>Historial de Operaciones</h3>
+                </div>
+
+                <div class="table-container">
+                    <table class="trades-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha Ent</th>
+                                <th>Hora Ent</th>
+                                <th>Fecha Sal</th>
+                                <th>Hora Sal</th>
+                                <th>Tipo</th>
+                                <th>Entrada</th>
+                                <th>Salida</th>
+                                <th>Tamaño</th>
+                                <th>PnL</th>
+                                <th>Razón</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tradesTableBody">
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="card" style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem;">Gráfico de Rendimiento</h3>
+                <div id="chart"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

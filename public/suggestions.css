@@ -1,0 +1,46 @@
+/* Autocomplete Suggestions */
+.suggestions-list {
+    position: absolute;
+    top: 100%;
+    /* Below input */
+    left: 0;
+    width: 100%;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    display: none;
+    /* Hidden by default */
+    margin-top: 4px;
+}
+
+.suggestion-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-between;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--accent-primary);
+}
+
+.suggestion-item .symbol-text {
+    font-weight: 600;
+}
+
+.suggestion-item .symbol-desc {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+}
