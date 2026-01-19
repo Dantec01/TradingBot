@@ -5,6 +5,13 @@ let candleSeries = null;
 let markers = [];
 let allSymbols = []; // Cache for symbols
 let recentSymbols = []; // Last 5 used symbols
+let botStateHistory = new Map(); // symbol -> { tradesCount: 0, hasPosition: false }
+const CASHIER_SOUND = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_06d6713994.mp3?filename=cash-register-purchase-1.mp3');
+
+function playCashier() {
+    CASHIER_SOUND.currentTime = 0;
+    CASHIER_SOUND.play().catch(e => console.warn("Audio play blocked by browser:", e));
+}
 
 const STORAGE_KEYS = {
     START_DATE: 'backtest_startDate',
@@ -12,13 +19,34 @@ const STORAGE_KEYS = {
     RECENT_SYMBOLS: 'backtest_recentSymbols'
 };
 
+// Tab Switching Logic
+function switchTab(tabId) {
+    const buttons = document.querySelectorAll('.tab-btn');
+    const panes = document.querySelectorAll('.tab-pane');
+
+    buttons.forEach(btn => btn.classList.remove('active'));
+    panes.forEach(pane => pane.classList.remove('active'));
+
+    const targetPane = document.getElementById(`${tabId}-pane`);
+    const targetBtn = Array.from(buttons).find(btn => btn.getAttribute('onclick').includes(`'${tabId}'`));
+
+    if (targetPane) targetPane.classList.add('active');
+    if (targetBtn) targetBtn.classList.add('active');
+}
+
 // Init
 document.addEventListener('DOMContentLoaded', () => {
     loadPersistedData();
     loadSymbols();
     setupAutocomplete();
+    setupAutocompleteBot(); // New
     setupDatePersistence();
     setupClearButton();
+    setupClearButtonBot(); // New
+
+    // Initial fetch and start interval
+    refreshActiveBots();
+    setInterval(refreshActiveBots, 3000);
 });
 
 // Setup clear button for symbol input
@@ -107,13 +135,12 @@ function setupAutocomplete() {
     input.addEventListener('input', (e) => {
         const val = e.target.value.toUpperCase();
         if (!val) {
-            // Show recent symbols when input is empty
-            if (recentSymbols.length > 0) {
-                const recentMatches = recentSymbols.map(s => ({ symbol: s + 'USDT', baseAsset: s, isRecent: true }));
-                renderSuggestions(recentMatches, true);
-            } else {
-                list.style.display = 'none';
-            }
+            // Show recent symbols or popular ones when input is empty
+            const popular = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA'].map(s => ({ symbol: s + 'USDT', baseAsset: s, isRecent: true }));
+            const matches = recentSymbols.length > 0
+                ? recentSymbols.map(s => ({ symbol: s + 'USDT', baseAsset: s, isRecent: true }))
+                : popular;
+            renderSuggestions(matches, true);
             return;
         }
 
@@ -121,18 +148,22 @@ function setupAutocomplete() {
         renderSuggestions(matches.slice(0, 50), false);
     });
 
-    // Show recent when focused and empty
+    // Show suggestions when focused and empty
     input.addEventListener('focus', () => {
         const val = input.value.toUpperCase();
-        if (!val && recentSymbols.length > 0) {
-            const recentMatches = recentSymbols.map(s => ({ symbol: s + 'USDT', baseAsset: s, isRecent: true }));
-            renderSuggestions(recentMatches, true);
+        if (!val) {
+            const popular = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA'].map(s => ({ symbol: s + 'USDT', baseAsset: s, isRecent: true }));
+            const matches = recentSymbols.length > 0
+                ? recentSymbols.map(s => ({ symbol: s + 'USDT', baseAsset: s, isRecent: true }))
+                : popular;
+            renderSuggestions(matches, true);
         }
     });
 
     // Close on click outside
     document.addEventListener('click', (e) => {
-        if (e.target !== input && e.target !== list && !list.contains(e.target)) {
+        const clearBtn = document.getElementById('clearSymbol');
+        if (e.target !== input && e.target !== list && !list.contains(e.target) && e.target !== clearBtn) {
             list.style.display = 'none';
         }
     });
@@ -413,4 +444,333 @@ function drawChart(candles, trades) {
 
     // Auto fit
     chart.timeScale().fitContent();
+}
+
+// --- LIVE BOT FUNCTIONS ---
+let botStatusInterval = null;
+
+function setupClearButtonBot() {
+    const clearBtn = document.getElementById('live-clearSymbol');
+    const input = document.getElementById('live-symbol');
+    if (!clearBtn || !input) return;
+
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+        input.focus();
+        input.dispatchEvent(new Event('input'));
+    });
+}
+
+function setupAutocompleteBot() {
+    const input = document.getElementById('live-symbol');
+    const list = document.getElementById('live-symbolSuggestions');
+    if (!input || !list) return;
+
+    input.addEventListener('input', (e) => {
+        const val = e.target.value.toUpperCase();
+        if (val === '') {
+            const popular = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA'].map(s => ({ symbol: s + 'USDT', baseAsset: s, isRecent: true }));
+            const matches = recentSymbols.length > 0
+                ? recentSymbols.map(s => ({ symbol: s + 'USDT', baseAsset: s, isRecent: true }))
+                : popular;
+            renderSuggestionsBot(matches, true);
+            return;
+        }
+
+        const matches = allSymbols.filter(s =>
+            s.symbol.includes(val) || s.baseAsset.includes(val)
+        ).slice(0, 10);
+
+        renderSuggestionsBot(matches);
+    });
+
+    input.addEventListener('focus', () => {
+        if (input.value === '') {
+            const popular = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA'].map(s => ({ symbol: s + 'USDT', baseAsset: s, isRecent: true }));
+            const matches = recentSymbols.length > 0
+                ? recentSymbols.map(s => ({ symbol: s + 'USDT', baseAsset: s, isRecent: true }))
+                : popular;
+            renderSuggestionsBot(matches, true);
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        const clearBtn = document.getElementById('live-clearSymbol');
+        if (e.target !== input && e.target !== list && !list.contains(e.target) && e.target !== clearBtn) {
+            list.style.display = 'none';
+        }
+    });
+}
+
+function renderSuggestionsBot(matches, showRecentHeader = false) {
+    const list = document.getElementById('live-symbolSuggestions');
+    if (matches.length === 0) {
+        list.style.display = 'none';
+        return;
+    }
+
+    list.innerHTML = '';
+    if (showRecentHeader) {
+        const header = document.createElement('div');
+        header.className = 'suggestion-header';
+        header.innerText = 'Recientes';
+        header.style.cssText = 'padding: 8px 12px; color: #888; font-size: 0.8rem; border-bottom: 1px solid #333;';
+        list.appendChild(header);
+    }
+
+    matches.forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'suggestion-item';
+        div.innerHTML = `
+            <span class="symbol-text">${m.baseAsset}</span>
+            ${m.isRecent ? '<span class="symbol-desc" style="color: #5e6ad2;">★</span>' : `<span class="symbol-desc">${m.symbol}</span>`}
+        `;
+        div.onclick = () => {
+            document.getElementById('live-symbol').value = m.baseAsset;
+            list.style.display = 'none';
+        };
+        list.appendChild(div);
+    });
+    list.style.display = 'block';
+}
+
+function handleStopExclusionBot(type) {
+    const fixed = document.getElementById('live-useFixedSL');
+    const breakeven = document.getElementById('live-useBreakeven');
+    const trailing = document.getElementById('live-useTrailing');
+
+    if (type === 'FIXED' && fixed.checked) {
+        breakeven.checked = false;
+        trailing.checked = false;
+    } else if (type === 'BREAKEVEN' && breakeven.checked) {
+        fixed.checked = false;
+        trailing.checked = false;
+    } else if (type === 'TRAILING' && trailing.checked) {
+        fixed.checked = false;
+        breakeven.checked = false;
+    }
+
+    document.getElementById('live-stopLossPct').disabled = !fixed.checked;
+    document.getElementById('live-trailingPct').disabled = !trailing.checked;
+
+    updateUsdtValuesBot();
+}
+
+function updateUsdtValuesBot() {
+    const margin = parseFloat(document.getElementById('live-orderSize').value) || 0;
+    const lev = parseFloat(document.getElementById('live-leverage').value) || 1;
+    const positionSize = margin * lev;
+
+    const fixedPct = parseFloat(document.getElementById('live-stopLossPct').value) || 0;
+    const fixedUsdt = positionSize * (fixedPct / 100);
+    document.getElementById('live-fixedUsdt').innerText = fixedUsdt.toFixed(2) + ' USDT';
+
+    const trailPct = parseFloat(document.getElementById('live-trailingPct').value) || 0;
+    const trailUsdt = positionSize * (trailPct / 100);
+    document.getElementById('live-trailingUsdt').innerText = trailUsdt.toFixed(2) + ' USDT';
+}
+
+async function runBot() {
+    const runBtn = document.getElementById('live-runBtn');
+    runBtn.innerText = 'Iniciando...';
+    runBtn.disabled = true;
+
+    let derivedMode = 'FIXED';
+    if (document.getElementById('live-useBreakeven').checked) derivedMode = 'BREAKEVEN';
+    else if (document.getElementById('live-useTrailing').checked) derivedMode = 'TRAILING';
+    else if (!document.getElementById('live-useFixedSL').checked) derivedMode = 'NONE';
+
+    const config = {
+        symbol: document.getElementById('live-symbol').value,
+        timeframe: document.getElementById('live-timeframe').value,
+        initialCapital: document.getElementById('live-initialCapital').value,
+        orderSize: document.getElementById('live-orderSize').value,
+        stopLossPct: document.getElementById('live-stopLossPct').value,
+        leverage: document.getElementById('live-leverage').value,
+        direction: document.getElementById('live-direction').value,
+        strategy: document.getElementById('live-strategy').value,
+        slMode: derivedMode,
+        trailingPct: document.getElementById('live-trailingPct').value,
+        mode: document.getElementById('live-mode').value
+    };
+
+    saveRecentSymbol(config.symbol);
+
+    try {
+        const res = await fetch('/api/bot/pair/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+
+        await res.json();
+        logBotEvent(`[SISTEMA] Bot para ${config.symbol} iniciado en modo ${config.mode}`);
+
+        // Start polling if not started
+        if (!botStatusInterval) {
+            botStatusInterval = setInterval(refreshActiveBots, 2000);
+            refreshActiveBots();
+        }
+
+    } catch (err) {
+        alert('Error Bot: ' + err.message);
+    } finally {
+        runBtn.innerText = 'Añadir a HYDRA';
+        runBtn.disabled = false;
+    }
+}
+
+async function refreshActiveBots() {
+    try {
+        const res = await fetch('/api/bot/status');
+        const data = await res.json(); // Now structure is { connection, bots }
+
+        // Update connection badge
+        const wsBadge = document.getElementById('ws-status');
+        if (wsBadge) {
+            if (data.connection === 'CONNECTED') {
+                wsBadge.innerText = 'CONECTADO';
+                wsBadge.style.background = 'rgba(0, 230, 118, 0.2)';
+                wsBadge.style.color = '#00e676';
+            } else if (data.connection === 'RECONNECTING') {
+                wsBadge.innerText = `RECONECTANDO (Intento ${data.reconnectAttempts})...`;
+                wsBadge.style.background = 'rgba(255, 171, 0, 0.2)';
+                wsBadge.style.color = '#ffab00';
+            } else if (data.connection === 'CONNECTING') {
+                wsBadge.innerText = 'CONECTANDO...';
+                wsBadge.style.background = 'rgba(33, 150, 243, 0.2)';
+                wsBadge.style.color = '#2196f3';
+            } else {
+                wsBadge.innerText = 'DESCONECTADO';
+                wsBadge.style.background = 'rgba(255, 23, 68, 0.2)';
+                wsBadge.style.color = '#ff1744';
+            }
+        }
+
+        const bots = data.bots;
+        const tbody = document.getElementById('activeBotsBody');
+        const tradesBody = document.getElementById('liveTradesBody');
+
+        if (bots.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay monedas en seguimiento</td></tr>';
+            tradesBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Esperando primer trade...</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        let allLiveTrades = [];
+
+        bots.forEach(bot => {
+            // Check for new trades or position openings to play sound
+            const prev = botStateHistory.get(bot.symbol) || { tradesCount: 0, hasPosition: false };
+            const currentHasPos = !!bot.position;
+            const currentTradesCount = bot.totalTrades;
+
+            // Trigger sound if:
+            // 1. New trade opened (hasPosition false -> true)
+            // 2. Trade closed (tradesCount increased)
+            if ((currentHasPos && !prev.hasPosition) || (currentTradesCount > prev.tradesCount)) {
+                playCashier();
+                console.log(`[AUDIO] Sound triggered for ${bot.symbol}`);
+            }
+
+            // Update history
+            botStateHistory.set(bot.symbol, {
+                tradesCount: currentTradesCount,
+                hasPosition: currentHasPos
+            });
+
+            const tr = document.createElement('tr');
+            const posBadge = bot.position
+                ? `<span class="badge ${bot.position.type === 'LONG' ? 'badge-long' : 'badge-short'}">${bot.position.type}</span>`
+                : '<span class="badge badge-neutral">NEUTRAL</span>';
+
+            tr.innerHTML = `
+                <td><strong>${bot.symbol}</strong></td>
+                <td><span style="font-size: 0.75rem; background: #222; padding: 2px 4px; border-radius: 4px; color: #aaa;">${bot.timeframe}</span></td>
+                <td><span style="font-size: 0.75rem; color: var(--text-secondary);">${bot.strategy}</span></td>
+                <td><span style="font-size: 0.75rem; background: #333; padding: 2px 6px; border-radius: 4px;">${bot.mode}</span></td>
+                <td>$${bot.balance.toFixed(2)}</td>
+                <td>${posBadge}</td>
+                <td>${bot.roi.toFixed(2)}%</td>
+                <td>
+                    <button class="btn-primary" onclick="stopBot('${bot.symbol}')" style="background: var(--danger); min-width: auto; font-size: 0.7rem; padding: 4px 8px;">Detener</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+
+            // Collect trades with symbol info
+            bot.trades.forEach(t => {
+                allLiveTrades.push({ ...t, symbol: bot.symbol });
+            });
+        });
+
+        // Sort trades newest first
+        allLiveTrades.sort((a, b) => b.exitTime - a.exitTime);
+
+        if (allLiveTrades.length > 0) {
+            tradesBody.innerHTML = '';
+            allLiveTrades.slice(0, 50).forEach(t => { // Show last 50
+                const tr = document.createElement('tr');
+                const timeStr = new Date(t.exitTime).toLocaleTimeString();
+                const pnlClass = t.pnl >= 0 ? 'text-green' : 'text-red';
+
+                tr.innerHTML = `
+                    <td style="color: #888;">${timeStr}</td>
+                    <td><strong>${t.symbol}</strong></td>
+                    <td><span class="badge ${t.type === 'LONG' ? 'badge-long' : 'badge-short'}">${t.type}</span></td>
+                    <td>${t.entryPrice.toFixed(2)}</td>
+                    <td>${t.exitPrice.toFixed(2)}</td>
+                    <td style="color: #888;">$${(t.commission || 0).toFixed(3)}</td>
+                    <td style="color: #888;">$${(t.funding || 0).toFixed(3)}</td>
+                    <td class="${pnlClass}">$${t.pnl.toFixed(2)}</td>
+                    <td style="color: #666; font-size: 0.8rem;">${t.reason}</td>
+                `;
+                tradesBody.appendChild(tr);
+            });
+        }
+
+    } catch (err) {
+        console.error("Error refreshing bots:", err);
+    }
+}
+
+async function stopBot(symbol) {
+    if (!confirm(`¿Detener el bot de ${symbol}?`)) return;
+    try {
+        await fetch('/api/bot/pair/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol })
+        });
+        refreshActiveBots();
+        logBotEvent(`[SISTEMA] Bot para ${symbol} detenido.`);
+    } catch (err) {
+        alert("Error al detener bot: " + err.message);
+    }
+}
+
+async function stopAllBots() {
+    if (!confirm("¿Detener TODOS los bots de HYDRA?")) return;
+    try {
+        await fetch('/api/bot/stop-all', { method: 'POST' });
+        refreshActiveBots();
+        logBotEvent(`[SISTEMA] Todos los bots han sido detenidos.`);
+    } catch (err) {
+        alert("Error al detener todo: " + err.message);
+    }
+}
+
+function logBotEvent(msg) {
+    const log = document.getElementById('live-log');
+    const resDiv = document.getElementById('live-results');
+    resDiv.style.display = 'block';
+
+    const time = new Date().toLocaleTimeString();
+    const entry = document.createElement('div');
+    entry.style.marginBottom = '4px';
+    entry.innerText = `[${time}] ${msg}`;
+    log.prepend(entry);
 }

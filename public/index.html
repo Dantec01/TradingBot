@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS Backtester</title>
+    <title>HYDRA BOT TRADING</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,197 +29,541 @@
             <div class="logo">HYDRA BOT TRADING <span style="font-weight: 300; opacity: 0.7;">Backtester</span></div>
         </header>
 
-        <!-- Config Section -->
-        <div class="card">
-            <div style="margin-bottom: 20px;">
-                <h2 style="display: flex; align-items: center; gap: 10px;">
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    Configuración de la Prueba
-                </h2>
-                <p style="color: var(--text-secondary); margin-top: 5px; font-size: 0.9rem;">Simulación de estrategia
-                    Range Filter 100 con gestión de riesgo.</p>
+        <!-- Tab Navigation -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('backtest')">📟 Backtesting</button>
+            <button class="tab-btn" onclick="switchTab('bot')">⚡ Bot en Vivo (HYDRA)</button>
+            <button class="tab-btn" onclick="switchTab('info')">ℹ️ Información</button>
+        </nav>
+
+        <!-- Tab: Backtesting -->
+        <div id="backtest-pane" class="tab-pane active">
+            <!-- Config Section -->
+            <div class="card">
+                <div style="margin-bottom: 20px;">
+                    <h2 style="display: flex; align-items: center; gap: 10px;">
+                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Configuración de la Prueba
+                    </h2>
+                    <p style="color: var(--text-secondary); margin-top: 5px; font-size: 0.9rem;">Simulación de
+                        estrategia
+                        Range Filter 100 con gestión de riesgo.</p>
+                </div>
+
+                <form id="backtestForm" onsubmit="event.preventDefault(); runBacktest();">
+                    <div class="config-grid">
+                        <!-- Row 1 -->
+                        <div class="form-group" style="position: relative;">
+                            <label>Moneda (Ej: BTC, ETH)</label>
+                            <div class="input-with-clear">
+                                <input type="text" id="symbol" value="BTC" placeholder="Buscar moneda..."
+                                    autocomplete="off">
+                                <button type="button" id="clearSymbol" class="clear-btn" title="Borrar">&times;</button>
+                            </div>
+                            <div id="symbolSuggestions" class="suggestions-list"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Temporalidad</label>
+                            <select id="timeframe">
+                                <option value="5m">5 Minutos</option>
+                                <option value="15m" selected>15 Minutos</option>
+                                <option value="1h">1 Hora</option>
+                                <option value="4h">4 Horas</option>
+                                <option value="1d">1 Día</option>
+                            </select>
+                        </div>
+
+                        <!-- Row 2 -->
+                        <div class="form-group">
+                            <label>Fecha Inicio</label>
+                            <input type="date" id="startDate" value="2026-01-01">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha Fin</label>
+                            <input type="date" id="endDate" value="2026-01-18">
+                        </div>
+
+                        <!-- Row 3 -->
+                        <div class="form-group">
+                            <label>Capital Total (USDT)</label>
+                            <input type="number" id="initialCapital" value="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Tamaño de la Orden (USDT)</label>
+                            <input type="number" id="orderSize" value="10">
+                        </div>
+
+                        <!-- Row 4 -->
+                        <div class="form-group">
+                            <label>Apalancamiento (x)</label>
+                            <input type="number" id="leverage" value="20">
+                        </div>
+                        <div class="form-group">
+                            <label>Comisión (%)</label>
+                            <input type="number" id="feePct" value="0.04" step="0.01">
+                        </div>
+
+
+                        <!-- Row 4: Stop Loss Options -->
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Gestión de Stop Loss (Solo uno activo)</label>
+
+                            <!-- 1. Fixed Stop -->
+                            <div class="stop-option-row"
+                                style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <input type="checkbox" id="useFixedSL" checked onchange="handleStopExclusion('FIXED')"
+                                    style="width: auto; margin: 0;">
+                                <label for="useFixedSL" style="width: 120px;">Stop Fijo (%):</label>
+                                <input type="number" id="stopLossPct" value="1.0" step="0.1" style="width: 80px;"
+                                    oninput="updateUsdtValues()">
+                                <span id="fixedUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
+                            </div>
+
+                            <!-- 2. Breakeven -->
+                            <div class="stop-option-row"
+                                style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <input type="checkbox" id="useBreakeven" onchange="handleStopExclusion('BREAKEVEN')"
+                                    style="width: auto; margin: 0;">
+                                <label for="useBreakeven" style="width: 120px;">Stop Breakeven</label>
+                                <span style="font-size: 0.85rem; color: #888;">(Cierra en precio entrada)</span>
+                            </div>
+
+                            <!-- 3. Trailing Stop -->
+                            <div class="stop-option-row" style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="useTrailing" onchange="handleStopExclusion('TRAILING')"
+                                    style="width: auto; margin: 0;">
+                                <label for="useTrailing" style="width: 120px;">Trailing (%):</label>
+                                <input type="number" id="trailingPct" value="1.0" step="0.1" style="width: 80px;"
+                                    disabled oninput="updateUsdtValues()">
+                                <span id="trailingUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
+                            </div>
+                        </div>
+
+                        <!-- Row 6: Strategy -->
+                        <div class="form-group">
+                            <label>Estrategia de Entrada</label>
+                            <select id="strategy">
+                                <option value="CLOSE_ENTRY" selected>Entrada al cierre de vela (Por defecto)</option>
+                                <option value="OPEN_ENTRY">Entrada en apertura siguiente</option>
+                                <option value="SPIRIT">Estrategia Spirit (Re-entradas)</option>
+                                <option value="SPIRIT_IMPROVED">Spirit Mejorado (Re-entrada sig. vela)</option>
+                                <option value="SPIRIT_TRAILING">Spirit Trailing (Re-entra con Trailing)</option>
+                                <option value="SPIRIT_EXPERIMENTAL">Spirit Experimental (SL Dinámico Ent+1)</option>
+                            </select>
+                        </div>
+
+                        <!-- Row 7: Direction -->
+                        <div class="form-group">
+                            <label>Dirección</label>
+                            <select id="direction">
+                                <option value="BOTH">Long &amp; Short</option>
+                                <option value="LONG">Solo Long</option>
+                                <option value="SHORT">Solo Short</option>
+                            </select>
+                        </div>
+
+                        <!-- Run Button -->
+                        <div class="form-group" style="justify-content: flex-end;">
+                            <button type="submit" class="btn-primary" id="runBtn">Ejecutar Prueba</button>
+                        </div>
+                    </div>
+                </form>
             </div>
 
-            <form id="backtestForm" onsubmit="event.preventDefault(); runBacktest();">
-                <div class="config-grid">
-                    <!-- Row 1 -->
-                    <div class="form-group" style="position: relative;">
-                        <label>Moneda (Ej: BTC, ETH)</label>
-                        <div class="input-with-clear">
-                            <input type="text" id="symbol" value="BTC" placeholder="Buscar moneda..."
-                                autocomplete="off">
-                            <button type="button" id="clearSymbol" class="clear-btn" title="Borrar">&times;</button>
-                        </div>
-                        <div id="symbolSuggestions" class="suggestions-list"></div>
-                    </div>
-                    <div class="form-group">
-                        <label>Temporalidad</label>
-                        <select id="timeframe">
-                            <option value="5m">5 Minutos</option>
-                            <option value="15m" selected>15 Minutos</option>
-                            <option value="1h">1 Hora</option>
-                            <option value="4h">4 Horas</option>
-                            <option value="1d">1 Día</option>
-                        </select>
-                    </div>
+            <!-- Results Section -->
+            <div id="results" style="display: none; margin-top: 2rem;">
 
-                    <!-- Row 2 -->
-                    <div class="form-group">
-                        <label>Fecha Inicio</label>
-                        <input type="date" id="startDate" value="2026-01-01">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card" id="card-roi">
+                        <div class="stat-value" id="roi">---</div>
+                        <label>Retorno Total (ROI)</label>
                     </div>
-                    <div class="form-group">
-                        <label>Fecha Fin</label>
-                        <input type="date" id="endDate" value="2026-01-18">
+                    <div class="stat-card">
+                        <div class="stat-value" id="finalBalance">---</div>
+                        <label>Balance Final</label>
                     </div>
-
-                    <!-- Row 3 -->
-                    <div class="form-group">
-                        <label>Capital Total (USDT)</label>
-                        <input type="number" id="initialCapital" value="100">
+                    <div class="stat-card">
+                        <div class="stat-value" id="winRate">---</div>
+                        <label>Tasa de Acierto</label>
                     </div>
-                    <div class="form-group">
-                        <label>Tamaño de la Orden (USDT)</label>
-                        <input type="number" id="orderSize" value="10">
-                    </div>
-
-                    <!-- Row 4 -->
-                    <div class="form-group">
-                        <label>Apalancamiento (x)</label>
-                        <input type="number" id="leverage" value="20">
-                    </div>
-                    <div class="form-group">
-                        <label>Comisión (%)</label>
-                        <input type="number" id="feePct" value="0.04" step="0.01">
-                    </div>
-
-
-                    <!-- Row 4: Stop Loss Options -->
-                    <div class="form-group" style="grid-column: span 2;">
-                        <label>Gestión de Stop Loss (Solo uno activo)</label>
-
-                        <!-- 1. Fixed Stop -->
-                        <div class="stop-option-row"
-                            style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                            <input type="checkbox" id="useFixedSL" checked onchange="handleStopExclusion('FIXED')"
-                                style="width: auto; margin: 0;">
-                            <label for="useFixedSL" style="width: 120px;">Stop Fijo (%):</label>
-                            <input type="number" id="stopLossPct" value="1.0" step="0.1" style="width: 80px;"
-                                oninput="updateUsdtValues()">
-                            <span id="fixedUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
-                        </div>
-
-                        <!-- 2. Breakeven -->
-                        <div class="stop-option-row"
-                            style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                            <input type="checkbox" id="useBreakeven" onchange="handleStopExclusion('BREAKEVEN')"
-                                style="width: auto; margin: 0;">
-                            <label for="useBreakeven" style="width: 120px;">Stop Breakeven</label>
-                            <span style="font-size: 0.85rem; color: #888;">(Cierra en precio entrada)</span>
-                        </div>
-
-                        <!-- 3. Trailing Stop -->
-                        <div class="stop-option-row" style="display: flex; align-items: center; gap: 10px;">
-                            <input type="checkbox" id="useTrailing" onchange="handleStopExclusion('TRAILING')"
-                                style="width: auto; margin: 0;">
-                            <label for="useTrailing" style="width: 120px;">Trailing (%):</label>
-                            <input type="number" id="trailingPct" value="1.0" step="0.1" style="width: 80px;" disabled
-                                oninput="updateUsdtValues()">
-                            <span id="trailingUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
-                        </div>
-                    </div>
-
-                    <!-- Row 6: Strategy -->
-                    <div class="form-group">
-                        <label>Estrategia de Entrada</label>
-                        <select id="strategy">
-                            <option value="CLOSE_ENTRY" selected>Entrada al cierre de vela (Por defecto)</option>
-                            <option value="OPEN_ENTRY">Entrada en apertura siguiente</option>
-                            <option value="SPIRIT">Estrategia Spirit (Re-entradas)</option>
-                            <option value="SPIRIT_IMPROVED">Spirit Mejorado (Re-entrada sig. vela)</option>
-                            <option value="SPIRIT_TRAILING">Spirit Trailing (Re-entra con Trailing)</option>
-                        </select>
-                    </div>
-
-                    <!-- Row 7: Direction -->
-                    <div class="form-group">
-                        <label>Dirección</label>
-                        <select id="direction">
-                            <option value="BOTH">Long &amp; Short</option>
-                            <option value="LONG">Solo Long</option>
-                            <option value="SHORT">Solo Short</option>
-                        </select>
-                    </div>
-
-                    <!-- Run Button -->
-                    <div class="form-group" style="justify-content: flex-end;">
-                        <button type="submit" class="btn-primary" id="runBtn">Ejecutar Prueba</button>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalTrades">---</div>
+                        <label>Total Trades</label>
                     </div>
                 </div>
-            </form>
+
+                <!-- Trades History -->
+                <div class="card" style="margin-top: 2rem; padding: 0; overflow: hidden;">
+                    <div style="padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
+                        <h3>Historial de Operaciones</h3>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="trades-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha Ent</th>
+                                    <th>Hora Ent</th>
+                                    <th>Fecha Sal</th>
+                                    <th>Hora Sal</th>
+                                    <th>Tipo</th>
+                                    <th>Entrada</th>
+                                    <th>Salida</th>
+                                    <th>Tamaño</th>
+                                    <th>PnL</th>
+                                    <th>Razón</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tradesTableBody">
+                                <!-- Rows injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="card" style="margin-top: 2rem;">
+                    <h3 style="margin-bottom: 1rem;">Gráfico de Rendimiento</h3>
+                    <div id="chart"></div>
+                </div>
+            </div>
         </div>
 
-        <!-- Results Section -->
-        <div id="results" style="display: none; margin-top: 2rem;">
+        <!-- Tab: Bot -->
+        <div id="bot-pane" class="tab-pane">
+            <!-- Config Section for Live Bot -->
+            <div class="card">
+                <div style="margin-bottom: 20px;">
+                    <h2 style="display: flex; align-items: center; gap: 10px;">
+                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Configuración del Bot en Vivo
+                    </h2>
+                    <p style="color: var(--text-secondary); margin-top: 5px; font-size: 0.9rem;">
+                        Configuración para ejecución en tiempo real (Simulada por ahora).
+                    </p>
+                </div>
 
-            <!-- Stats Cards -->
-            <div class="stats-grid">
-                <div class="stat-card" id="card-roi">
-                    <div class="stat-value" id="roi">---</div>
-                    <label>Retorno Total (ROI)</label>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="finalBalance">---</div>
-                    <label>Balance Final</label>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="winRate">---</div>
-                    <label>Tasa de Acierto</label>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="totalTrades">---</div>
-                    <label>Total Trades</label>
-                </div>
+                <form id="botForm" onsubmit="event.preventDefault(); runBot();">
+                    <div class="config-grid">
+                        <!-- Row 1 -->
+                        <div class="form-group" style="position: relative;">
+                            <label>Moneda (Ej: BTC, ETH)</label>
+                            <div class="input-with-clear">
+                                <input type="text" id="live-symbol" value="BTC" placeholder="Buscar moneda..."
+                                    autocomplete="off">
+                                <button type="button" id="live-clearSymbol" class="clear-btn"
+                                    title="Borrar">&times;</button>
+                            </div>
+                            <div id="live-symbolSuggestions" class="suggestions-list"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Temporalidad</label>
+                            <select id="live-timeframe">
+                                <option value="5m">5 Minutos</option>
+                                <option value="15m" selected>15 Minutos</option>
+                                <option value="1h">1 Hora</option>
+                                <option value="4h">4 Horas</option>
+                                <option value="1d">1 Día</option>
+                            </select>
+                        </div>
+
+                        <!-- Row 2 (API Keys placeholder) -->
+                        <div class="form-group">
+                            <label>API Key (Binance)</label>
+                            <input type="password" id="live-apiKey" placeholder="Opcional por ahora">
+                        </div>
+                        <div class="form-group">
+                            <label>Secret Key (Binance)</label>
+                            <input type="password" id="live-secretKey" placeholder="Opcional por ahora">
+                        </div>
+
+                        <!-- Row 3 -->
+                        <div class="form-group">
+                            <label>Capital de Trabajo (USDT)</label>
+                            <input type="number" id="live-initialCapital" value="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Tamaño de la Orden (USDT)</label>
+                            <input type="number" id="live-orderSize" value="10">
+                        </div>
+
+                        <!-- Row 4 -->
+                        <div class="form-group">
+                            <label>Apalancamiento (x)</label>
+                            <input type="number" id="live-leverage" value="20">
+                        </div>
+                        <div class="form-group">
+                            <label>Modo de Ejecución</label>
+                            <select id="live-mode"
+                                style="border: 1px solid var(--accent-primary); background: rgba(94, 106, 210, 0.1);">
+                                <option value="PAPER" selected>MODO PRUEBA (Dinero Ficticio)</option>
+                                <option value="REAL">MODO REAL (Dinero Real)</option>
+                            </select>
+                        </div>
+
+                        <!-- Stop Loss Options -->
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Gestión de Stop Loss (Solo uno activo)</label>
+
+                            <div class="stop-option-row"
+                                style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <input type="checkbox" id="live-useFixedSL" checked
+                                    onchange="handleStopExclusionBot('FIXED')" style="width: auto; margin: 0;">
+                                <label for="live-useFixedSL" style="width: 120px;">Stop Fijo (%):</label>
+                                <input type="number" id="live-stopLossPct" value="1.0" step="0.1" style="width: 80px;"
+                                    oninput="updateUsdtValuesBot()">
+                                <span id="live-fixedUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
+                            </div>
+
+                            <div class="stop-option-row"
+                                style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <input type="checkbox" id="live-useBreakeven"
+                                    onchange="handleStopExclusionBot('BREAKEVEN')" style="width: auto; margin: 0;">
+                                <label for="live-useBreakeven" style="width: 120px;">Stop Breakeven</label>
+                                <span style="font-size: 0.85rem; color: #888;">(Cierra en precio entrada)</span>
+                            </div>
+
+                            <div class="stop-option-row" style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="live-useTrailing"
+                                    onchange="handleStopExclusionBot('TRAILING')" style="width: auto; margin: 0;">
+                                <label for="live-useTrailing" style="width: 120px;">Trailing (%):</label>
+                                <input type="number" id="live-trailingPct" value="1.0" step="0.1" style="width: 80px;"
+                                    disabled oninput="updateUsdtValuesBot()">
+                                <span id="live-trailingUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
+                            </div>
+                        </div>
+
+                        <!-- Strategy & Direction -->
+                        <div class="form-group">
+                            <label>Estrategia de Entrada</label>
+                            <select id="live-strategy">
+                                <option value="CLOSE_ENTRY" selected>Entrada al cierre de vela</option>
+                                <option value="OPEN_ENTRY">Entrada en apertura siguiente</option>
+                                <option value="SPIRIT">Estrategia Spirit (Re-entradas)</option>
+                                <option value="SPIRIT_IMPROVED">Spirit Mejorado</option>
+                                <option value="SPIRIT_TRAILING">Spirit Trailing</option>
+                                <option value="SPIRIT_EXPERIMENTAL">Spirit Experimental</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Dirección</label>
+                            <select id="live-direction">
+                                <option value="BOTH">Long &amp; Short</option>
+                                <option value="LONG">Solo Long</option>
+                                <option value="SHORT">Solo Short</option>
+                            </select>
+                        </div>
+
+                        <!-- Start Button -->
+                        <div class="form-group" style="justify-content: flex-end;">
+                            <button type="submit" class="btn-primary" id="live-runBtn"
+                                style="background: var(--accent-primary); color: white;">Añadir a HYDRA</button>
+                        </div>
+                    </div>
+                </form>
             </div>
 
-            <!-- Trades History -->
-            <div class="card" style="margin-top: 2rem; padding: 0; overflow: hidden;">
-                <div style="padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
-                    <h3>Historial de Operaciones</h3>
+            <!-- Active Bots Management -->
+            <div class="card" style="margin-top: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <h3>Gestión de Bots Activos (HYDRA)</h3>
+                        <span id="ws-status" class="badge"
+                            style="background: #444; color: #aaa; font-size: 0.7rem;">DESCONECTADO</span>
+                    </div>
+                    <button class="btn-primary" onclick="stopAllBots()"
+                        style="background: var(--danger); color: white; min-width: auto; padding: 0.5rem 1rem;">Detener
+                        Todo</button>
                 </div>
 
                 <div class="table-container">
-                    <table class="trades-table">
+                    <table class="trades-table" style="margin-top: 0;">
                         <thead>
                             <tr>
-                                <th>Fecha Ent</th>
-                                <th>Hora Ent</th>
-                                <th>Fecha Sal</th>
-                                <th>Hora Sal</th>
-                                <th>Tipo</th>
-                                <th>Entrada</th>
-                                <th>Salida</th>
-                                <th>Tamaño</th>
-                                <th>PnL</th>
-                                <th>Razón</th>
+                                <th>Par</th>
+                                <th>TF</th>
+                                <th>Estrategia</th>
+                                <th>Modo</th>
+                                <th>Balance</th>
+                                <th>Posición</th>
+                                <th>PnL Actual</th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
-                        <tbody id="tradesTableBody">
+                        <tbody id="activeBotsBody">
                             <!-- Rows injected by JS -->
+                            <tr>
+                                <td colspan="8"
+                                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay
+                                    monedas en seguimiento</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Chart -->
+            <!-- Live Session Trades -->
             <div class="card" style="margin-top: 2rem;">
-                <h3 style="margin-bottom: 1rem;">Gráfico de Rendimiento</h3>
-                <div id="chart"></div>
+                <h3>Historial de Trades (Sesión Actual)</h3>
+                <div class="table-container">
+                    <table class="trades-table" style="margin-top: 1rem;">
+                        <thead>
+                            <tr>
+                                <th>Hora Entrada</th>
+                                <th>Par</th>
+                                <th>Tipo</th>
+                                <th>Precio Ent.</th>
+                                <th>Precio Sal.</th>
+                                <th>Comisión</th>
+                                <th>Funding</th>
+                                <th>PnL (USDT)</th>
+                                <th>Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liveTradesBody">
+                            <tr>
+                                <td colspan="7"
+                                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">Esperando
+                                    primer trade...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
+            <!-- Bot Log / Notifications -->
+            <div id="live-results" style="display: none; margin-top: 2rem;">
+                <div class="card" style="border-left: 4px solid var(--success);">
+                    <h3 id="live-status-text">Consola de Eventos</h3>
+                    <div id="live-log"
+                        style="font-family: monospace; font-size: 0.85rem; height: 151px; overflow-y: auto; margin-top: 1rem; color: #aaa;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Información -->
+        <div id="info-pane" class="tab-pane">
+            <div class="card">
+                <h2 style="margin-bottom: 2rem; color: var(--accent-primary);">Guía de Estrategias - HYDRA BOT</h2>
+
+                <div class="info-section" style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 2rem;">
+                    <h3
+                        style="color: var(--accent-primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                        <svg width="24" height="24" fill="var(--accent-primary)" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+                        </svg>
+                        Mecánica de Re-entrada (Spirit)
+                    </h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
+                        A diferencia de las estrategias tradicionales que requieren un nuevo cruce de indicadores para
+                        entrar, las estrategias <strong>Spirit</strong> operan bajo el concepto de <strong>"Persistencia
+                            de Tendencia"</strong>.
+                    </p>
+                    <ul
+                        style="color: var(--text-secondary); line-height: 1.8; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                        <li><strong>Resurrección de Posición:</strong> Si el bot es sacado del mercado por un Stop Loss
+                            (mecha rápida, volatilidad momentánea) pero el indicador <em>Range Filter</em> aún mantiene
+                            la señal original, el bot abrirá la posición de nuevo inmediatamente.</li>
+                        <li><strong>Aprovechamiento de Tendencias:</strong> Evita perderse el movimiento principal
+                            después de un retroceso que toque el SL. El bot "confía" en que la tendencia sigue viva
+                            mientras el filtro no cambie de color.</li>
+                        <li><strong>Variantes:</strong>
+                            <br>&bull; <strong>Spirit (Base):</strong> Re-entra sin condiciones adicionales tras un SL.
+                            <br>&bull; <strong>Spirit Improved:</strong> Espera al inicio de la siguiente vela para
+                            evitar re-entrar en una caída libre continua.
+                            <br>&bull; <strong>Spirit Trailing:</strong> Específicamente optimizado para re-entrar
+                            incluso si la salida fue por un Trailing Stop ajustado.
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="info-section" style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
+                    <h3 style="color: var(--success); margin-bottom: 1rem;">1. Entrada al Cierre (CLOSE_ENTRY)</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6;">
+                        Es la ejecución más conservadora. El bot espera a que la vela actual cierre completamente para
+                        confirmar la señal del <strong>Range Filter</strong>.
+                        Si al cierre la señal es alcista ("Buy"), entra en Long. Si es bajista ("Sell"), entra en Short.
+                        Evita falsos positivos de velas en formación.
+                    </p>
+                </div>
+
+                <div class="info-section" style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
+                    <h3 style="color: var(--success); margin-bottom: 1rem;">2. Entrada en Apertura (OPEN_ENTRY)</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6;">
+                        Similar al cierre, pero la orden se ejecuta exactamente en el precio de apertura de la siguiente
+                        vela.
+                        Es útil para simular ejecuciones donde el slippage del cierre de vela es un factor importante.
+                    </p>
+                </div>
+
+                <div class="info-section" style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
+                    <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">3. Estrategia Spirit (SPIRIT)</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6;">
+                        Diseñada para mercados con tendencia fuerte. Permite <strong>re-entradas diferidas</strong>.
+                        Si una posición se cierra por Stop Loss pero la señal del Range Filter sigue activa, el bot
+                        esperará
+                        a la entrada de la <strong>siguiente vela</strong> para re-abrir la posición al **mismo precio**
+                        que
+                        activó el Stop Loss.
+                        Evita el ruido de la vela que genera la salida y maximiza la captura de tendencias.
+                    </p>
+                </div>
+
+                <div class="info-section" style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
+                    <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">4. Spirit Mejorado (SPIRIT_IMPROVED)
+                    </h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6;">
+                        Evolución de Spirit con filtros de seguridad adicionales. La re-entrada es similar a Spirit pero
+                        se ejecuta al precio de mercado (**Market**) al inicio de la vela posterior si la tendencia
+                        persiste.
+                        Mantiene la agresividad de Spirit pero con una entrada más confirmada.
+                    </p>
+                </div>
+
+                <div class="info-section" style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
+                    <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">5. Spirit Trailing (SPIRIT_TRAILING)
+                    </h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6;">
+                        La variante más avanzada. Combina la lógica de re-entrada de Spirit con una gestión de
+                        <strong>Trailing Stop</strong> dinámica.
+                        Permite que el bot re-entre incluso si la última salida fue por un Trailing Stop, siempre y
+                        cuando la tendencia (Range Filter) no haya revertido.
+                        Ideal para capturar grandes movimientos con stops que protegen las ganancias.
+                    </p>
+                </div>
+
+                <div class="info-section" style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
+                    <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">6. Spirit Experimental
+                        (SPIRIT_EXPERIMENTAL)</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6;">
+                        Una variante única diseñada para dar "respiro" al trade.
+                        <strong>Lógica:</strong> No aplica ningún Stop Loss en el momento de la entrada. El bot espera a
+                        que cierre la vela <em>inmediatamente posterior</em> a la de entrada (Entrada + 1). El precio de
+                        cierre de esa vela se convierte automáticamente en el Stop Loss definitivo para el resto de la
+                        operación.
+                    </p>
+                </div>
+
+                <div class="alert-box"
+                    style="background: rgba(94, 106, 210, 0.1); border: 1px solid var(--accent-primary); padding: 1.5rem; border-radius: 8px;">
+                    <h4 style="margin-top: 0; color: var(--accent-primary);">💡 Consejo Pro</h4>
+                    <p style="margin-bottom: 0; font-size: 0.9rem; color: var(--text-secondary);">
+                        Para scalping en temporalidades bajas (1m, 5m), las estrategias de la familia
+                        <strong>Spirit</strong> suelen capturar mejor los impulsos volátiles, mientras que
+                        <strong>CLOSE_ENTRY</strong> es preferible para swings en 15m o 1h.
+                    </p>
+                </div>
+            </div>
         </div>
 
     </div>

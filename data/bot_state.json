@@ -1,0 +1,25 @@
+{
+  "bots": [
+    {
+      "config": {
+        "symbol": "DASH",
+        "timeframe": "5m",
+        "initialCapital": 100,
+        "orderSize": 10,
+        "leverage": 20,
+        "strategy": "SPIRIT_EXPERIMENTAL",
+        "slMode": "BREAKEVEN",
+        "stopLossPct": 1,
+        "trailingPct": 1,
+        "direction": "BOTH",
+        "mode": "PAPER"
+      },
+      "state": {
+        "balance": 100,
+        "trades": [],
+        "position": null,
+        "pendingReEntry": null
+      }
+    }
+  ]
+}

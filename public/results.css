@@ -98,6 +98,11 @@
     color: var(--danger);
 }
 
+.badge-neutral {
+    background: rgba(139, 139, 153, 0.2);
+    color: var(--text-secondary);
+}
+
 /* Scrollbar */
 .table-container::-webkit-scrollbar {
     width: 8px;
