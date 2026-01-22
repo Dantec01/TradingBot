@@ -47,6 +47,11 @@ app.get('/api/bot/status', (req, res) => {
     res.json(status);
 });
 
+app.get('/api/bot/history', (req, res) => {
+    const history = botManager.getHistory();
+    res.json(history);
+});
+
 app.post('/api/bot/stop-all', (req, res) => {
     botManager.stopAll();
     res.json({ success: true });

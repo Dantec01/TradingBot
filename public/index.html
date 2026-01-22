@@ -386,6 +386,7 @@
 
             <!-- Active Bots Management -->
             <div class="card" style="margin-top: 2rem;">
+                <!-- ... existing bot management header ... -->
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <h3>Gestión de Bots Activos (HYDRA)</h3>
@@ -404,7 +405,9 @@
                                 <th>Par</th>
                                 <th>TF</th>
                                 <th>Estrategia</th>
-                                <th>Modo</th>
+                                <th>Tipo SL</th>
+                                <th>Valor SL</th>
+                                <th>Cap. Inicial</th>
                                 <th>Balance</th>
                                 <th>Posición</th>
                                 <th>PnL Actual</th>
@@ -414,7 +417,7 @@
                         <tbody id="activeBotsBody">
                             <!-- Rows injected by JS -->
                             <tr>
-                                <td colspan="8"
+                                <td colspan="10"
                                     style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay
                                     monedas en seguimiento</td>
                             </tr>
@@ -422,6 +425,8 @@
                     </table>
                 </div>
             </div>
+
+
 
             <!-- Live Session Trades -->
             <div class="card" style="margin-top: 2rem;">
@@ -459,6 +464,37 @@
                     <div id="live-log"
                         style="font-family: monospace; font-size: 0.85rem; height: 151px; overflow-y: auto; margin-top: 1rem; color: #aaa;">
                     </div>
+                </div>
+            </div>
+
+            <!-- Session History Table (Moved) -->
+            <div class="card" style="margin-top: 2rem;">
+                <h3>Historial de Sesiones Finalizadas</h3>
+                <div class="table-container">
+                    <table class="trades-table" style="margin-top: 1rem;">
+                        <thead>
+                            <tr>
+                                <th>Par</th>
+                                <th>Estrategia</th>
+                                <th>Tipo SL</th>
+                                <th>Valor SL</th>
+                                <th>Cap. Inicial</th>
+                                <th>Balance Final</th>
+                                <th>PnL Neto</th>
+                                <th>Inicio</th>
+                                <th>Fin</th>
+                                <th>Duración</th>
+                                <th>Trades</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBotsBody">
+                            <tr>
+                                <td colspan="11"
+                                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                    No hay historial disponible</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

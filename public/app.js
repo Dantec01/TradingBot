@@ -74,7 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial fetch and start interval
     refreshActiveBots();
+    refreshBotHistory(); // Fetch history
     setInterval(refreshActiveBots, 3000);
+    setInterval(refreshBotHistory, 10000); // Poll history every 10s
 
     // Unlock Audio Context on first interaction
     document.body.addEventListener('click', () => {
@@ -712,7 +714,7 @@ async function refreshActiveBots() {
         const tradesBody = document.getElementById('liveTradesBody');
 
         if (bots.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay monedas en seguimiento</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay monedas en seguimiento</td></tr>';
             tradesBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Esperando primer trade...</td></tr>';
             return;
         }
@@ -755,7 +757,9 @@ async function refreshActiveBots() {
                 <td><strong>${bot.symbol}</strong></td>
                 <td><span style="font-size: 0.75rem; background: #222; padding: 2px 4px; border-radius: 4px; color: #aaa;">${bot.timeframe}</span></td>
                 <td><span style="font-size: 0.75rem; color: var(--text-secondary);">${bot.strategy}</span></td>
-                <td><span style="font-size: 0.75rem; background: #333; padding: 2px 6px; border-radius: 4px;">${bot.mode}</span></td>
+                <td><span style="font-size: 0.75rem; color: #ccc;">${bot.slMode}</span></td>
+                <td><span style="font-size: 0.75rem; color: #ccc;">${bot.stopLossPct}%</span></td>
+                <td>$${Number(bot.initialCapital).toFixed(2)}</td>
                 <td>$${bot.balance.toFixed(2)}</td>
                 <td>${posBadge}</td>
                 <td>${bot.roi.toFixed(2)}%</td>
@@ -802,7 +806,7 @@ async function refreshActiveBots() {
 }
 
 async function stopBot(symbol) {
-    if (!confirm(`¿Detener el bot de ${symbol}?`)) return;
+    if (!confirm(`¿Detener bot para ${symbol}? Se guardará el historial de sesión.`)) return;
     try {
         await fetch('/api/bot/pair/remove', {
             method: 'POST',
@@ -810,6 +814,7 @@ async function stopBot(symbol) {
             body: JSON.stringify({ symbol })
         });
         refreshActiveBots();
+        setTimeout(refreshBotHistory, 1000); // Wait for FS save
         logBotEvent(`[SISTEMA] Bot para ${symbol} detenido.`);
     } catch (err) {
         alert("Error al detener bot: " + err.message);
@@ -821,9 +826,52 @@ async function stopAllBots() {
     try {
         await fetch('/api/bot/stop-all', { method: 'POST' });
         refreshActiveBots();
+        setTimeout(refreshBotHistory, 1000);
         logBotEvent(`[SISTEMA] Todos los bots han sido detenidos.`);
     } catch (err) {
         alert("Error al detener todo: " + err.message);
+    }
+}
+
+async function refreshBotHistory() {
+    try {
+        const res = await fetch('/api/bot/history');
+        const history = await res.json();
+        const tbody = document.getElementById('historyBotsBody');
+
+        if (history.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay historial disponible</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        history.forEach(entry => {
+            const tr = document.createElement('tr');
+
+            const formatDate = (ts) => new Date(ts).toLocaleString('es-ES', {
+                month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+            });
+
+            const pnlClass = entry.pnl >= 0 ? 'text-green' : 'text-red';
+            const pnlSign = entry.pnl >= 0 ? '+' : '';
+
+            tr.innerHTML = `
+                <td><strong>${entry.symbol}</strong> <span style="font-size:0.7em; color:#888;">${entry.timeframe}</span></td>
+                <td><span style="font-size: 0.75rem; color: var(--text-secondary);">${entry.strategy}</span></td>
+                <td><span style="font-size: 0.75rem; color: #ccc;">${entry.slMode}</span></td>
+                <td><span style="font-size: 0.75rem; color: #ccc;">${entry.stopLossPct}%</span></td>
+                <td>$${Number(entry.initialCapital).toFixed(2)}</td>
+                <td>$${Number(entry.finalBalance).toFixed(2)}</td>
+                <td class="${pnlClass}" style="font-weight:bold;">${pnlSign}$${Number(entry.pnl).toFixed(2)}</td>
+                <td style="font-size: 0.75rem; color: #aaa;">${formatDate(entry.startTime)}</td>
+                <td style="font-size: 0.75rem; color: #aaa;">${formatDate(entry.endTime)}</td>
+                <td><span class="badge" style="background:#333;">${entry.duration}</span></td>
+                <td>${entry.totalTrades}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (err) {
+        console.error("Error refreshing history:", err);
     }
 }
 

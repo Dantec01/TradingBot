@@ -15,7 +15,7 @@
         "mode": "PAPER"
       },
       "state": {
-        "balance": 436.98542142291956,
+        "balance": 514.890670057013,
         "trades": [
           {
             "type": "SHORT",
@@ -1508,13 +1508,158 @@
             "funding": 0,
             "reason": "Breakeven SL",
             "roi": -0.08
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 66.67,
+            "margin": 100,
+            "size": 29.99850007499625,
+            "entryTime": 1769089501058,
+            "entryCandleTime": 1769089200000,
+            "highestPrice": 66.67,
+            "lowestPrice": 65.24,
+            "entryCommission": 0.04,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769089501058,
+            "experimentalSL": 65.33,
+            "experimentalSLSet": true,
+            "exitPrice": 65.33,
+            "exitTime": 1769089501475,
+            "pnl": 40.11799010049508,
+            "commission": 0.08,
+            "funding": 0,
+            "reason": "Stop Loss (Experimental)",
+            "roi": 40.11799010049508
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 65.33,
+            "margin": 100,
+            "size": 30.613806826878925,
+            "entryTime": 1769099698971,
+            "entryCandleTime": 1769099400000,
+            "highestPrice": 65.33,
+            "lowestPrice": 64.03,
+            "entryCommission": 0.04,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769099698971,
+            "experimentalSL": 64.08,
+            "experimentalSLSet": true,
+            "exitPrice": 64.08,
+            "exitTime": 1769099699222,
+            "pnl": 38.18725853359866,
+            "commission": 0.08,
+            "funding": 0,
+            "reason": "Stop Loss (Experimental)",
+            "roi": 38.18725853359866
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 64.08,
+            "margin": 100,
+            "size": 31.210986267166042,
+            "entryTime": 1769099998838,
+            "entryCandleTime": 1769099700000,
+            "highestPrice": 64.08,
+            "lowestPrice": 64.07,
+            "entryCommission": 0.04,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769099998838,
+            "exitPrice": 64.08,
+            "exitTime": 1769099998840,
+            "pnl": -0.08,
+            "commission": 0.08,
+            "funding": 0,
+            "reason": "Breakeven SL",
+            "roi": -0.08
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 64.08,
+            "margin": 100,
+            "size": 31.210986267166042,
+            "entryTime": 1769100298789,
+            "entryCandleTime": 1769100000000,
+            "highestPrice": 64.08,
+            "lowestPrice": 64.08,
+            "entryCommission": 0.04,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769100298789,
+            "exitPrice": 64.08,
+            "exitTime": 1769100298791,
+            "pnl": -0.08,
+            "commission": 0.08,
+            "funding": 0,
+            "reason": "Breakeven SL",
+            "roi": -0.08
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 64.08,
+            "margin": 100,
+            "size": 31.210986267166042,
+            "entryTime": 1769100599138,
+            "entryCandleTime": 1769100300000,
+            "highestPrice": 64.08,
+            "lowestPrice": 64.08,
+            "entryCommission": 0.04,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769100599138,
+            "exitPrice": 64.08,
+            "exitTime": 1769100599140,
+            "pnl": -0.08,
+            "commission": 0.08,
+            "funding": 0,
+            "reason": "Breakeven SL",
+            "roi": -0.08
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 64.08,
+            "margin": 100,
+            "size": 31.210986267166042,
+            "entryTime": 1769100898984,
+            "entryCandleTime": 1769100600000,
+            "highestPrice": 64.08,
+            "lowestPrice": 64.08,
+            "entryCommission": 0.04,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769100898984,
+            "exitPrice": 64.08,
+            "exitTime": 1769100898987,
+            "pnl": -0.08,
+            "commission": 0.08,
+            "funding": 0,
+            "reason": "Breakeven SL",
+            "roi": -0.08
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 64.08,
+            "margin": 100,
+            "size": 31.210986267166042,
+            "entryTime": 1769101199299,
+            "entryCandleTime": 1769100900000,
+            "highestPrice": 64.08,
+            "lowestPrice": 64.08,
+            "entryCommission": 0.04,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769101199299,
+            "exitPrice": 64.08,
+            "exitTime": 1769101199301,
+            "pnl": -0.08,
+            "commission": 0.08,
+            "funding": 0,
+            "reason": "Breakeven SL",
+            "roi": -0.08
           }
         ],
         "position": null,
         "pendingReEntry": {
-          "neededSignal": "Buy",
-          "entryPrice": 66.67
-        }
+          "neededSignal": "Sell",
+          "entryPrice": 64.08
+        },
+        "startTime": 1769100584634
       }
     },
     {
@@ -1532,7 +1677,7 @@
         "mode": "PAPER"
       },
       "state": {
-        "balance": 154.29865424749568,
+        "balance": 163.26473145247073,
         "trades": [
           {
             "type": "LONG",
@@ -3033,13 +3178,154 @@
             "funding": 0,
             "reason": "Trailing Stop",
             "roi": -2.0799999999999397
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.02097188093,
+            "margin": 10,
+            "size": 9536.579034925888,
+            "entryTime": 1769089501281,
+            "entryCandleTime": 1769089200000,
+            "highestPrice": 0.02097188093,
+            "lowestPrice": 0.02097188093,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769089501281,
+            "exitPrice": 0.020992852810929996,
+            "exitTime": 1769089501284,
+            "pnl": -0.20799999999997323,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": -2.0799999999997323
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.020992852810929996,
+            "margin": 10,
+            "size": 9527.051982942945,
+            "entryTime": 1769099699057,
+            "entryCandleTime": 1769099400000,
+            "highestPrice": 0.020992852810929996,
+            "lowestPrice": 0.0199,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769099699057,
+            "exitPrice": 0.019919899999999997,
+            "exitTime": 1769099699060,
+            "pnl": 10.214077204974853,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": 102.14077204974852
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.019919899999999997,
+            "margin": 10,
+            "size": 10040.211045236172,
+            "entryTime": 1769099999086,
+            "entryCandleTime": 1769099700000,
+            "highestPrice": 0.019919899999999997,
+            "lowestPrice": 0.019919899999999997,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769099999086,
+            "exitPrice": 0.019939819899999996,
+            "exitTime": 1769099999088,
+            "pnl": -0.20799999999998323,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": -2.079999999999832
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.019939819899999996,
+            "margin": 10,
+            "size": 10030.180864371801,
+            "entryTime": 1769100298822,
+            "entryCandleTime": 1769100000000,
+            "highestPrice": 0.019939819899999996,
+            "lowestPrice": 0.019939819899999996,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769100298822,
+            "exitPrice": 0.019959759719899994,
+            "exitTime": 1769100298824,
+            "pnl": -0.20799999999998658,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": -2.079999999999866
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.019959759719899994,
+            "margin": 10,
+            "size": 10020.160703668134,
+            "entryTime": 1769100598812,
+            "entryCandleTime": 1769100300000,
+            "highestPrice": 0.019959759719899994,
+            "lowestPrice": 0.019959759719899994,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769100598812,
+            "exitPrice": 0.019979719479619892,
+            "exitTime": 1769100598815,
+            "pnl": -0.20799999999998056,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": -2.0799999999998056
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.019979719479619892,
+            "margin": 10,
+            "size": 10010.15055311502,
+            "entryTime": 1769100898940,
+            "entryCandleTime": 1769100600000,
+            "highestPrice": 0.019979719479619892,
+            "lowestPrice": 0.019979719479619892,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769100898940,
+            "exitPrice": 0.01999969919909951,
+            "exitTime": 1769100898956,
+            "pnl": -0.2079999999999818,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": -2.079999999999818
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.01999969919909951,
+            "margin": 10,
+            "size": 10000.150402712308,
+            "entryTime": 1769101198985,
+            "entryCandleTime": 1769100900000,
+            "highestPrice": 0.01999969919909951,
+            "lowestPrice": 0.01999969919909951,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769101198985,
+            "exitPrice": 0.020019698898298608,
+            "exitTime": 1769101198987,
+            "pnl": -0.20799999999998128,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": -2.079999999999813
           }
         ],
         "position": null,
         "pendingReEntry": {
           "neededSignal": "Sell",
-          "entryPrice": 0.02097188093
-        }
+          "entryPrice": 0.020019698898298608
+        },
+        "startTime": 1769100585494
       }
     },
     {
@@ -3057,7 +3343,7 @@
         "mode": "PAPER"
       },
       "state": {
-        "balance": 119.81808953632617,
+        "balance": 120.45970382784056,
         "trades": [
           {
             "type": "LONG",
@@ -4058,13 +4344,34 @@
             "funding": 0,
             "reason": "Trailing Stop",
             "roi": 14.430278113663563
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 2.4654629999999997,
+            "margin": 10,
+            "size": 81.12066577352815,
+            "entryTime": 1769089501291,
+            "entryCandleTime": 1769089200000,
+            "highestPrice": 2.4654629999999997,
+            "lowestPrice": 2.455,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769089501291,
+            "exitPrice": 2.457455,
+            "exitTime": 1769089501295,
+            "pnl": 0.6416142915143966,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": 6.416142915143966
           }
         ],
         "position": null,
         "pendingReEntry": {
           "neededSignal": "Sell",
-          "entryPrice": 2.4654629999999997
-        }
+          "entryPrice": 2.457455
+        },
+        "startTime": 1769100586394
       }
     },
     {
@@ -4082,7 +4389,7 @@
         "mode": "PAPER"
       },
       "state": {
-        "balance": 177.15352635802765,
+        "balance": 177.14552635802767,
         "trades": [
           {
             "type": "SHORT",
@@ -5587,13 +5894,34 @@
             "funding": 0,
             "reason": "Breakeven SL",
             "roi": -0.08
+          },
+          {
+            "type": "LONG",
+            "entryPrice": 0.004438,
+            "margin": 10,
+            "size": 45065.344749887336,
+            "entryTime": 1769089501301,
+            "entryCandleTime": 1769089200000,
+            "highestPrice": 0.004444,
+            "lowestPrice": 0.004438,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769089501301,
+            "exitPrice": 0.004438,
+            "exitTime": 1769089501303,
+            "pnl": -0.008,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Breakeven SL",
+            "roi": -0.08
           }
         ],
         "position": null,
         "pendingReEntry": {
           "neededSignal": "Buy",
           "entryPrice": 0.004438
-        }
+        },
+        "startTime": 1769100587344
       }
     },
     {
@@ -5611,7 +5939,7 @@
         "mode": "PAPER"
       },
       "state": {
-        "balance": 114.32798456116896,
+        "balance": 145.07024609058908,
         "trades": [
           {
             "type": "LONG",
@@ -6912,13 +7240,154 @@
             "funding": 0,
             "reason": "Trailing Stop",
             "roi": -2.0799999999996652
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.07456891441999998,
+            "margin": 10,
+            "size": 2682.0827627116214,
+            "entryTime": 1769089503952,
+            "entryCandleTime": 1769089200000,
+            "highestPrice": 0.07456891441999998,
+            "lowestPrice": 0.0744,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769089503952,
+            "exitPrice": 0.07447439999999998,
+            "exitTime": 1769089503954,
+            "pnl": 0.24549549670967846,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": 2.4549549670967847
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.07447439999999998,
+            "margin": 10,
+            "size": 2685.486556454299,
+            "entryTime": 1769099698784,
+            "entryCandleTime": 1769099400000,
+            "highestPrice": 0.07447439999999998,
+            "lowestPrice": 0.06365,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769099698784,
+            "exitPrice": 0.06371365,
+            "exitTime": 1769099698787,
+            "pnl": 28.889849462365554,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": 288.89849462365555
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.06371365,
+            "margin": 10,
+            "size": 3139.044772980358,
+            "entryTime": 1769099999033,
+            "entryCandleTime": 1769099700000,
+            "highestPrice": 0.06371365,
+            "lowestPrice": 0.06333,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769099999033,
+            "exitPrice": 0.06339332999999998,
+            "exitTime": 1769099999035,
+            "pnl": 0.9974988216811085,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": 9.974988216811084
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.06339332999999998,
+            "margin": 10,
+            "size": 3154.906044531815,
+            "entryTime": 1769100299253,
+            "entryCandleTime": 1769100000000,
+            "highestPrice": 0.06339332999999998,
+            "lowestPrice": 0.06296,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769100299253,
+            "exitPrice": 0.06302295999999999,
+            "exitTime": 1769100299256,
+            "pnl": 1.1604825517132322,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": 11.604825517132323
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.06302295999999999,
+            "margin": 10,
+            "size": 3173.4466296092733,
+            "entryTime": 1769100599350,
+            "entryCandleTime": 1769100300000,
+            "highestPrice": 0.06302295999999999,
+            "lowestPrice": 0.063,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769100599350,
+            "exitPrice": 0.063063,
+            "exitTime": 1769100599354,
+            "pnl": -0.1350648030495714,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": -1.350648030495714
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.063063,
+            "margin": 10,
+            "size": 3171.4317428603144,
+            "entryTime": 1769100899273,
+            "entryCandleTime": 1769100600000,
+            "highestPrice": 0.063063,
+            "lowestPrice": 0.063063,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769100899273,
+            "exitPrice": 0.06312606299999998,
+            "exitTime": 1769100899275,
+            "pnl": -0.20799999999996263,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": -2.079999999999626
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.06312606299999998,
+            "margin": 10,
+            "size": 3168.2634793809343,
+            "entryTime": 1769101198939,
+            "entryCandleTime": 1769100900000,
+            "highestPrice": 0.06312606299999998,
+            "lowestPrice": 0.06312606299999998,
+            "entryCommission": 0.004,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769101198939,
+            "exitPrice": 0.06318918906299997,
+            "exitTime": 1769101198941,
+            "pnl": -0.2079999999999709,
+            "commission": 0.008,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": -2.079999999999709
           }
         ],
         "position": null,
         "pendingReEntry": {
           "neededSignal": "Sell",
-          "entryPrice": 0.07456891441999998
-        }
+          "entryPrice": 0.06318918906299997
+        },
+        "startTime": 1769100588205
       }
     }
   ]
