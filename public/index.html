@@ -102,8 +102,20 @@
                             <input type="number" id="leverage" value="20">
                         </div>
                         <div class="form-group">
-                            <label>Comisión (%)</label>
-                            <input type="number" id="feePct" value="0.04" step="0.01">
+                            <label>Comisión</label>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="useBinanceFee" checked onchange="toggleFeeInput()"
+                                        style="width: auto; margin: 0;">
+                                    <label for="useBinanceFee" style="font-size: 0.85rem; color: #aaa;">Usar fee Binance
+                                        (0.04% Taker)</label>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="number" id="feePct" value="0.04" step="0.01" style="width: 80px;"
+                                        disabled>
+                                    <span style="font-size: 0.85rem; color: #666;">% personalizado</span>
+                                </div>
+                            </div>
                         </div>
 
 
@@ -213,7 +225,8 @@
                                     <th>Tipo</th>
                                     <th>Entrada</th>
                                     <th>Salida</th>
-                                    <th>Tamaño</th>
+                                    <th>Comisión</th>
+                                    <th>Funding</th>
                                     <th>PnL</th>
                                     <th>Razón</th>
                                 </tr>
@@ -430,7 +443,7 @@
                         </thead>
                         <tbody id="liveTradesBody">
                             <tr>
-                                <td colspan="7"
+                                <td colspan="9"
                                     style="text-align: center; color: var(--text-secondary); padding: 2rem;">Esperando
                                     primer trade...</td>
                             </tr>

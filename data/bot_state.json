@@ -7,10 +7,52 @@
         "initialCapital": 100,
         "orderSize": 10,
         "leverage": 20,
-        "strategy": "SPIRIT_EXPERIMENTAL",
-        "slMode": "BREAKEVEN",
+        "strategy": "SPIRIT_TRAILING",
+        "slMode": "TRAILING",
         "stopLossPct": 1,
         "trailingPct": 1,
+        "direction": "BOTH",
+        "mode": "PAPER"
+      },
+      "state": {
+        "balance": 100,
+        "trades": [],
+        "position": null,
+        "pendingReEntry": null
+      }
+    },
+    {
+      "config": {
+        "symbol": "IP",
+        "timeframe": "5m",
+        "initialCapital": 100,
+        "orderSize": 10,
+        "leverage": 20,
+        "strategy": "SPIRIT_TRAILING",
+        "slMode": "TRAILING",
+        "stopLossPct": 1,
+        "trailingPct": 1,
+        "direction": "BOTH",
+        "mode": "PAPER"
+      },
+      "state": {
+        "balance": 100,
+        "trades": [],
+        "position": null,
+        "pendingReEntry": null
+      }
+    },
+    {
+      "config": {
+        "symbol": "ROSE",
+        "timeframe": "5m",
+        "initialCapital": 100,
+        "orderSize": 10,
+        "leverage": 20,
+        "strategy": "SPIRIT_TRAILING",
+        "slMode": "TRAILING",
+        "stopLossPct": 1,
+        "trailingPct": 0.1,
         "direction": "BOTH",
         "mode": "PAPER"
       },

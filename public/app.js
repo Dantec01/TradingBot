@@ -6,17 +6,37 @@ let markers = [];
 let allSymbols = []; // Cache for symbols
 let recentSymbols = []; // Last 5 used symbols
 let botStateHistory = new Map(); // symbol -> { tradesCount: 0, hasPosition: false }
-const CASHIER_SOUND = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_06d6713994.mp3?filename=cash-register-purchase-1.mp3');
+const CASHIER_SOUND = new Audio('https://cdn.pixabay.com/audio/2024/09/13/audio_29108b3303.mp3'); // Classic Cha-Ching Sound
 
 function playCashier() {
     CASHIER_SOUND.currentTime = 0;
-    CASHIER_SOUND.play().catch(e => console.warn("Audio play blocked by browser:", e));
+    CASHIER_SOUND.play().catch(e => {
+        console.warn("Audio play blocked by browser:", e);
+        // Visual fallback: flash the status badge or show notification
+        showVisualNotification('🔔 Nueva operación detectada');
+    });
+}
+
+// Visual notification fallback when audio is blocked
+function showVisualNotification(message) {
+    const badge = document.getElementById('ws-status');
+    if (badge) {
+        const originalText = badge.innerText;
+        const originalBg = badge.style.background;
+        badge.innerText = message;
+        badge.style.background = 'rgba(255, 234, 0, 0.3)';
+        setTimeout(() => {
+            badge.innerText = originalText;
+            badge.style.background = originalBg;
+        }, 2000);
+    }
 }
 
 const STORAGE_KEYS = {
     START_DATE: 'backtest_startDate',
     END_DATE: 'backtest_endDate',
-    RECENT_SYMBOLS: 'backtest_recentSymbols'
+    RECENT_SYMBOLS: 'backtest_recentSymbols',
+    ACTIVE_TAB: 'active_tab'
 };
 
 // Tab Switching Logic
@@ -32,6 +52,9 @@ function switchTab(tabId) {
 
     if (targetPane) targetPane.classList.add('active');
     if (targetBtn) targetBtn.classList.add('active');
+
+    // Save state
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_TAB, tabId);
 }
 
 // Init
@@ -83,6 +106,12 @@ function loadPersistedData() {
         } catch (e) {
             recentSymbols = [];
         }
+    }
+
+    // Restore active tab
+    const savedTab = localStorage.getItem(STORAGE_KEYS.ACTIVE_TAB);
+    if (savedTab) {
+        switchTab(savedTab);
     }
 }
 
@@ -245,6 +274,16 @@ function updateUsdtValues() {
     document.getElementById('trailingUsdt').innerText = trailUsdt.toFixed(2) + ' USDT';
 }
 
+// Toggle fee input based on checkbox
+function toggleFeeInput() {
+    const useBinance = document.getElementById('useBinanceFee').checked;
+    const feeInput = document.getElementById('feePct');
+    feeInput.disabled = useBinance;
+    if (useBinance) {
+        feeInput.value = '0.04'; // Default Binance taker fee
+    }
+}
+
 async function runBacktest() {
     const runBtn = document.getElementById('runBtn');
     runBtn.innerText = 'Corriendo...';
@@ -256,6 +295,10 @@ async function runBacktest() {
     else if (document.getElementById('useTrailing').checked) derivedMode = 'TRAILING';
     else if (!document.getElementById('useFixedSL').checked) derivedMode = 'NONE'; // If none checked? Or treat as Fixed 0?
 
+    // Determine fee to use
+    const useBinanceFee = document.getElementById('useBinanceFee').checked;
+    const feeValue = useBinanceFee ? '0.04' : document.getElementById('feePct').value;
+
     const config = {
         symbol: document.getElementById('symbol').value,
         timeframe: document.getElementById('timeframe').value,
@@ -263,7 +306,8 @@ async function runBacktest() {
         orderSize: document.getElementById('orderSize').value,
         stopLossPct: document.getElementById('stopLossPct').value,
         leverage: document.getElementById('leverage').value,
-        feePct: document.getElementById('feePct').value,
+        feePct: feeValue,
+        useBinanceFee: useBinanceFee,
         direction: document.getElementById('direction').value,
         strategy: document.getElementById('strategy').value,
         slMode: derivedMode,
@@ -290,7 +334,7 @@ async function runBacktest() {
     } catch (err) {
         alert('Error: ' + err.message);
     } finally {
-        runBtn.innerText = 'Ejecutar Simulación';
+        runBtn.innerText = 'Ejecutar Prueba';
         runBtn.disabled = false;
     }
 }
@@ -348,7 +392,8 @@ function renderResults(data) {
             <td><span class="badge ${badgeClass}">${t.type}</span></td>
             <td>${t.entryPrice.toFixed(4)}</td>
             <td>${t.exitPrice.toFixed(4)}</td>
-            <td>${t.size.toFixed(4)}</td>
+            <td style="color: #888;">$${(t.commission || 0).toFixed(3)}</td>
+            <td style="color: ${(t.funding || 0) < 0 ? '#00e676' : '#888'};">$${(t.funding || 0).toFixed(3)}</td>
             <td class="${pnlClass}" style="font-weight:bold;">$${t.pnl.toFixed(2)}</td>
             <td style="color: #888;">${t.reason}</td>
         `;
@@ -683,9 +728,15 @@ async function refreshActiveBots() {
             });
 
             const tr = document.createElement('tr');
-            const posBadge = bot.position
-                ? `<span class="badge ${bot.position.type === 'LONG' ? 'badge-long' : 'badge-short'}">${bot.position.type}</span>`
-                : '<span class="badge badge-neutral">NEUTRAL</span>';
+            let posBadge = '';
+            if (bot.position) {
+                posBadge = `<span class="badge ${bot.position.type === 'LONG' ? 'badge-long' : 'badge-short'}">${bot.position.type}</span>`;
+            } else if (bot.pendingReEntry) {
+                const signal = bot.pendingReEntry.neededSignal === 'Buy' ? 'LONG' : 'SHORT';
+                posBadge = `<span class="badge" style="background: rgba(255, 171, 0, 0.2); color: #ffab00;">ESPERANDO ${signal}</span>`;
+            } else {
+                posBadge = `<span class="badge" style="background: #222; color: #888;">MONITOREANDO</span>`;
+            }
 
             tr.innerHTML = `
                 <td><strong>${bot.symbol}</strong></td>
