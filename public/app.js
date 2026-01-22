@@ -6,15 +6,20 @@ let markers = [];
 let allSymbols = []; // Cache for symbols
 let recentSymbols = []; // Last 5 used symbols
 let botStateHistory = new Map(); // symbol -> { tradesCount: 0, hasPosition: false }
-const CASHIER_SOUND = new Audio('https://cdn.pixabay.com/audio/2024/09/13/audio_29108b3303.mp3'); // Classic Cha-Ching Sound
+// Sound Effect
+const CASHIER_SOUND = new Audio('https://www.myinstants.com/media/sounds/ka-ching.mp3');
 
 function playCashier() {
     CASHIER_SOUND.currentTime = 0;
-    CASHIER_SOUND.play().catch(e => {
-        console.warn("Audio play blocked by browser:", e);
-        // Visual fallback: flash the status badge or show notification
-        showVisualNotification('🔔 Nueva operación detectada');
-    });
+    // Attempt play with promise handling
+    const playPromise = CASHIER_SOUND.play();
+
+    if (playPromise !== undefined) {
+        playPromise.catch(e => {
+            console.warn("Audio play blocked (Browser Autoplay Policy). User interaction needed first.", e);
+            showVisualNotification('💰 Operación Detectada (Sonido Bloqueado)');
+        });
+    }
 }
 
 // Visual notification fallback when audio is blocked
@@ -70,6 +75,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial fetch and start interval
     refreshActiveBots();
     setInterval(refreshActiveBots, 3000);
+
+    // Unlock Audio Context on first interaction
+    document.body.addEventListener('click', () => {
+        CASHIER_SOUND.play().then(() => {
+            CASHIER_SOUND.pause();
+            CASHIER_SOUND.currentTime = 0;
+        }).catch(() => { });
+    }, { once: true });
 });
 
 // Setup clear button for symbol input
