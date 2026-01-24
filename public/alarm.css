@@ -1,0 +1,5 @@
+@keyframes flashRed {
+    0% { background-color: #1a1a1a; }
+    50% { background-color: #330000; }
+    100% { background-color: #1a1a1a; }
+}

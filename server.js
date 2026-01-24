@@ -1,4 +1,6 @@
+require('dotenv').config();
 const express = require('express');
+
 const path = require('path');
 const cors = require('cors');
 const backtestEngine = require('./lib/backtest');
@@ -93,6 +95,15 @@ app.get('/api/real-bot/history', (req, res) => {
 app.post('/api/real-bot/stop-all', (req, res) => {
     realBotManager.stopAll();
     res.json({ success: true });
+});
+
+app.get('/api/real-bot/balance', async (req, res) => {
+    try {
+        const balance = await realBotManager.fetchBalance();
+        res.json({ balance });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 app.post('/api/real-bot/history/clear', (req, res) => {

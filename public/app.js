@@ -8,10 +8,14 @@ let recentSymbols = []; // Last 5 used symbols
 let botStateHistory = new Map(); // symbol -> { tradesCount: 0, hasPosition: false }
 // Sound Effect
 const CASHIER_SOUND = new Audio('https://www.myinstants.com/media/sounds/ka-ching.mp3');
+// Sonido de Alarma (Alerta Nuclear / Sirena) - Loop infinito hasta que se pare
+const ALARM_SOUND = new Audio('https://www.myinstants.com/media/sounds/nuclear-alarm.mp3');
+ALARM_SOUND.loop = true;
+
+let isAlarmPlaying = false;
 
 function playCashier() {
     CASHIER_SOUND.currentTime = 0;
-    // Attempt play with promise handling
     const playPromise = CASHIER_SOUND.play();
 
     if (playPromise !== undefined) {
@@ -20,6 +24,33 @@ function playCashier() {
             showVisualNotification('💰 Operación Detectada (Sonido Bloqueado)');
         });
     }
+}
+
+function playAlarm() {
+    if (isAlarmPlaying) return;
+
+    // Solo reproducir si el usuario ya interactuó con la página
+    ALARM_SOUND.currentTime = 0;
+    const playPromise = ALARM_SOUND.play();
+
+    if (playPromise !== undefined) {
+        playPromise.then(() => {
+            isAlarmPlaying = true;
+            document.body.style.animation = "flashRed 1s infinite"; // Efecto visual
+            alert("⚠️ ALERTA CRÍTICA: ¡CONEXIÓN CON EL BOT PERDIDA! ⚠️");
+        }).catch(e => {
+            console.warn("Alarm audio blocked.", e);
+            showVisualNotification('⚠️ DESCONECTADO (Sonido Bloqueado) ⚠️');
+        });
+    }
+}
+
+function stopAlarm() {
+    if (!isAlarmPlaying) return;
+    ALARM_SOUND.pause();
+    ALARM_SOUND.currentTime = 0;
+    isAlarmPlaying = false;
+    document.body.style.animation = ""; // Quitar efecto visual
 }
 
 // Visual notification fallback when audio is blocked
@@ -696,16 +727,19 @@ async function refreshActiveBots() {
         const data = await res.json(); // Now structure is { connection, bots }
 
         // Update connection badge
+        // Update connection badge
         const wsBadge = document.getElementById('ws-status');
         if (wsBadge) {
             if (data.connection === 'CONNECTED') {
                 wsBadge.innerText = 'CONECTADO';
                 wsBadge.style.background = 'rgba(0, 230, 118, 0.2)';
                 wsBadge.style.color = '#00e676';
+                if (isAlarmPlaying) stopAlarm(); // Recuperó conexión -> parar alarma
             } else if (data.connection === 'RECONNECTING') {
                 wsBadge.innerText = `RECONECTANDO (Intento ${data.reconnectAttempts})...`;
                 wsBadge.style.background = 'rgba(255, 171, 0, 0.2)';
                 wsBadge.style.color = '#ffab00';
+                playAlarm(); // Perdió conexión -> sonar alarma
             } else if (data.connection === 'CONNECTING') {
                 wsBadge.innerText = 'CONECTANDO...';
                 wsBadge.style.background = 'rgba(33, 150, 243, 0.2)';
@@ -714,6 +748,7 @@ async function refreshActiveBots() {
                 wsBadge.innerText = 'DESCONECTADO';
                 wsBadge.style.background = 'rgba(255, 23, 68, 0.2)';
                 wsBadge.style.color = '#ff1744';
+                playAlarm(); // Totalmente muerto -> sonar alarma
             }
         }
 
@@ -1016,6 +1051,26 @@ async function refreshRealActiveBots() {
         const res = await fetch('/api/real-bot/status');
         const data = await res.json();
 
+        // Update Logs
+        if (data.logs) {
+            updateRealBotLog(data.logs);
+        }
+
+        // Update Balance
+        // Update Balance (Protected)
+        const balanceEl = document.getElementById('real-total-balance');
+        if (balanceEl && data.totalBalance !== undefined) {
+            const newBal = parseFloat(data.totalBalance);
+            // Solo actualizamos si el nuevo valor es significativo (> 0)
+            // O si el valor actual es un placeholder ("---" o "...")
+            if (newBal > 0) {
+                balanceEl.innerText = `$${newBal.toFixed(2)}`;
+            } else if (newBal === 0 && (balanceEl.innerText === '---' || balanceEl.innerText === '...')) {
+                // Si realmente es 0 y no tenemos nada, mostramos 0.
+                balanceEl.innerText = `$0.00`;
+            }
+        }
+
         // Update connection badge
         const wsBadge = document.getElementById('real-ws-status');
         if (wsBadge) {
@@ -1210,16 +1265,64 @@ async function clearRealBotHistory() {
     }
 }
 
-function logRealBotEvent(msg) {
-    const log = document.getElementById('real-log');
-    const resDiv = document.getElementById('real-results');
-    resDiv.style.display = 'block';
+// --- FETCH BALANCE ON DEMAND ---
+async function fetchRealBalance() {
+    const balanceEl = document.getElementById('real-total-balance');
+    const originalText = balanceEl.innerText;
+    balanceEl.innerText = '...';
 
-    const time = new Date().toLocaleTimeString();
-    const entry = document.createElement('div');
-    entry.style.marginBottom = '4px';
-    entry.innerText = `[${time}] ${msg}`;
-    log.prepend(entry);
+    try {
+        const res = await fetch('/api/real-bot/balance');
+        if (!res.ok) throw new Error('Error API');
+        const data = await res.json();
+        const balanceVal = parseFloat(data.balance);
+
+        // Update display text
+        balanceEl.innerText = `$${balanceVal.toFixed(2)}`;
+
+        // Update initial capital input automatically
+        const capitalInput = document.getElementById('real-initialCapital');
+        if (capitalInput) {
+            capitalInput.value = Math.floor(balanceVal); // Round down to safer integer or keep decimals? Let's verify precision.
+            // Better to keep up to 2 decimals but maybe floor slightly to avoid rounding issues on max balance usage
+            // Let's use 2 decimals
+            capitalInput.value = balanceVal.toFixed(2);
+        }
+
+    } catch (err) {
+        console.error("Error fetching balance:", err);
+        balanceEl.innerText = originalText;
+        alert("Error obteniendo balance: " + err.message);
+    }
+}
+
+// --- REAL BOT LOG HELPER ---
+function updateRealBotLog(logs) {
+    if (!logs) return;
+
+    const logContainer = document.getElementById('real-log');
+    if (!logContainer) return;
+
+    // Clear and rebuild (simple approach for <= 50 items)
+    let html = '';
+    logs.forEach(log => {
+        let color = '#aaa';
+        if (log.level === 'ERROR') color = '#ff1744';
+        else if (log.level === 'WARN') color = '#ffab00';
+        else if (log.level === 'SUCCESS') color = '#00e676';
+
+        const time = new Date(log.time).toLocaleTimeString();
+        html += `<div style="color: ${color}; margin-bottom: 4px;">
+            <span style="opacity:0.6">[${time}]</span> ${log.message}
+        </div>`;
+    });
+
+    logContainer.innerHTML = html;
+}
+
+function logRealBotEvent(msg) {
+    // Legacy frontend logger fallback
+    console.log(msg);
 }
 
 async function refreshBotHistory() {
