@@ -1,0 +1,18 @@
+[
+  {
+    "id": "17692278165491hrrz",
+    "symbol": "ROSE",
+    "timeframe": "15m",
+    "strategy": "CLOSE_ENTRY",
+    "slMode": "TRAILING",
+    "stopLossPct": 1,
+    "mode": "PAPER",
+    "initialCapital": 120,
+    "finalBalance": 120,
+    "pnl": 0,
+    "startTime": 1769227760937,
+    "endTime": 1769227816548,
+    "duration": "0h 0m",
+    "totalTrades": 0
+  }
+]

@@ -3,6 +3,7 @@ const path = require('path');
 const cors = require('cors');
 const backtestEngine = require('./lib/backtest');
 const botManager = require('./lib/botManager');
+const realBotManager = require('./lib/realBotManager');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -25,7 +26,7 @@ app.post('/api/backtest', async (req, res) => {
     }
 });
 
-// Live Bot Management
+// Live Bot Management (Paper)
 app.post('/api/bot/pair/add', async (req, res) => {
     try {
         const config = req.body;
@@ -57,11 +58,50 @@ app.post('/api/bot/stop-all', (req, res) => {
     res.json({ success: true });
 });
 
-// Fallback removed to avoid Express 5/path-to-regexp matching errors
-// Static middleware handles index.html naturally
+app.post('/api/bot/history/clear', (req, res) => {
+    botManager.clearHistory();
+    res.json({ success: true });
+});
 
+// Real Bot Management (Exact Mirror for BOT 01)
+app.post('/api/real-bot/pair/add', async (req, res) => {
+    try {
+        const config = req.body;
+        const status = await realBotManager.addPair(config);
+        res.json({ success: true, status });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/real-bot/pair/remove', (req, res) => {
+    const { symbol } = req.body;
+    const success = realBotManager.removePair(symbol);
+    res.json({ success });
+});
+
+app.get('/api/real-bot/status', (req, res) => {
+    const status = realBotManager.getStatus();
+    res.json(status);
+});
+
+app.get('/api/real-bot/history', (req, res) => {
+    const history = realBotManager.getHistory();
+    res.json(history);
+});
+
+app.post('/api/real-bot/stop-all', (req, res) => {
+    realBotManager.stopAll();
+    res.json({ success: true });
+});
+
+app.post('/api/real-bot/history/clear', (req, res) => {
+    realBotManager.clearHistory();
+    res.json({ success: true });
+});
 
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
     botManager.loadState();
+    realBotManager.loadState();
 });

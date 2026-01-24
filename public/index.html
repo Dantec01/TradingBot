@@ -33,6 +33,7 @@
         <nav class="tab-nav">
             <button class="tab-btn active" onclick="switchTab('backtest')">📟 Backtesting</button>
             <button class="tab-btn" onclick="switchTab('bot')">⚡ Bot en Vivo (HYDRA)</button>
+            <button class="tab-btn" onclick="switchTab('real-bot')">🚀 BOT 01 (REAL)</button>
             <button class="tab-btn" onclick="switchTab('info')">ℹ️ Información</button>
         </nav>
 
@@ -469,7 +470,12 @@
 
             <!-- Session History Table (Moved) -->
             <div class="card" style="margin-top: 2rem;">
-                <h3>Historial de Sesiones Finalizadas</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>Historial de Sesiones Finalizadas</h3>
+                    <button class="btn-primary" onclick="clearBotHistory()"
+                        style="background: #444; color: #aaa; min-width: auto; padding: 4px 8px; font-size: 0.7rem;">Limpiar
+                        Historial</button>
+                </div>
                 <div class="table-container">
                     <table class="trades-table" style="margin-top: 1rem;">
                         <thead>
@@ -495,6 +501,241 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Real Bot (BOT 01) -->
+        <div id="real-bot-pane" class="tab-pane">
+            <div class="card">
+                <div style="margin-bottom: 20px;">
+                    <h2 style="display: flex; align-items: center; gap: 10px; color: #ffeb3b;">
+                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        BOT 01 (REAL TRADING)
+                    </h2>
+                    <p style="color: var(--text-secondary); margin-top: 5px; font-size: 0.9rem;">
+                        Entorno de ejecución aislado para Trading Real.
+                    </p>
+                </div>
+
+                <form id="realBotForm" onsubmit="event.preventDefault(); runRealBot();">
+                    <div class="config-grid">
+                        <div class="form-group" style="position: relative;">
+                            <label>Moneda (Ej: BTC, ETH)</label>
+                            <div class="input-with-clear">
+                                <input type="text" id="real-symbol" value="BTC" placeholder="Buscar moneda..."
+                                    autocomplete="off">
+                                <button type="button" id="real-clearSymbol" class="clear-btn"
+                                    title="Borrar">&times;</button>
+                            </div>
+                            <div id="real-symbolSuggestions" class="suggestions-list"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Temporalidad</label>
+                            <select id="real-timeframe">
+                                <option value="5m">5 Minutos</option>
+                                <option value="15m" selected>15 Minutos</option>
+                                <option value="1h">1 Hora</option>
+                                <option value="4h">4 Horas</option>
+                                <option value="1d">1 Día</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>API Key (Binance)</label>
+                            <input type="password" id="real-apiKey" placeholder="Opcional por ahora">
+                        </div>
+                        <div class="form-group">
+                            <label>Secret Key (Binance)</label>
+                            <input type="password" id="real-secretKey" placeholder="Opcional por ahora">
+                        </div>
+                        <div class="form-group">
+                            <label>Capital de Trabajo (USDT)</label>
+                            <input type="number" id="real-initialCapital" value="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Tamaño de la Orden (USDT)</label>
+                            <input type="number" id="real-orderSize" value="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Apalancamiento (x)</label>
+                            <input type="number" id="real-leverage" value="20">
+                        </div>
+                        <div class="form-group">
+                            <label>Modo de Ejecución</label>
+                            <select id="real-mode"
+                                style="border: 1px solid #ffeb3b; background: rgba(255, 235, 59, 0.1); color: #ffeb3b;">
+                                <option value="REAL_BOT_01" selected>MODO REAL (BOT 01)</option>
+                            </select>
+                        </div>
+
+                        <!-- Stop Loss Options -->
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Gestión de Stop Loss (Solo uno activo)</label>
+                            <div class="stop-option-row"
+                                style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <input type="checkbox" id="real-useFixedSL" checked
+                                    onchange="handleStopExclusionReal('FIXED')" style="width: auto; margin: 0;">
+                                <label for="real-useFixedSL" style="width: 120px;">Stop Fijo (%):</label>
+                                <input type="number" id="real-stopLossPct" value="1.0" step="0.1" style="width: 80px;"
+                                    oninput="updateUsdtValuesReal()">
+                                <span id="real-fixedUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
+                            </div>
+                            <div class="stop-option-row"
+                                style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <input type="checkbox" id="real-useBreakeven"
+                                    onchange="handleStopExclusionReal('BREAKEVEN')" style="width: auto; margin: 0;">
+                                <label for="real-useBreakeven" style="width: 120px;">Stop Breakeven</label>
+                                <span style="font-size: 0.85rem; color: #888;">(Cierra en precio entrada)</span>
+                            </div>
+                            <div class="stop-option-row" style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="real-useTrailing"
+                                    onchange="handleStopExclusionReal('TRAILING')" style="width: auto; margin: 0;">
+                                <label for="real-useTrailing" style="width: 120px;">Trailing (%):</label>
+                                <input type="number" id="real-trailingPct" value="1.0" step="0.1" style="width: 80px;"
+                                    disabled oninput="updateUsdtValuesReal()">
+                                <span id="real-trailingUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Estrategia de Entrada</label>
+                            <select id="real-strategy">
+                                <option value="CLOSE_ENTRY" selected>Entrada al cierre de vela</option>
+                                <option value="OPEN_ENTRY">Entrada en apertura siguiente</option>
+                                <option value="SPIRIT">Estrategia Spirit (Re-entradas)</option>
+                                <option value="SPIRIT_IMPROVED">Spirit Mejorado</option>
+                                <option value="SPIRIT_TRAILING">Spirit Trailing</option>
+                                <option value="SPIRIT_EXPERIMENTAL">Spirit Experimental</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Dirección</label>
+                            <select id="real-direction">
+                                <option value="BOTH">Long &amp; Short</option>
+                                <option value="LONG">Solo Long</option>
+                                <option value="SHORT">Solo Short</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="justify-content: flex-end;">
+                            <button type="submit" class="btn-primary" id="real-runBtn"
+                                style="background: #ffeb3b; color: #000;">Iniciar BOT 01</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card" style="margin-top: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <h3>Bots Activos (BOT 01)</h3>
+                        <span id="real-ws-status" class="badge"
+                            style="background: #444; color: #aaa; font-size: 0.7rem;">DESCONECTADO</span>
+                    </div>
+                    <button class="btn-primary" onclick="stopAllRealBots()"
+                        style="background: var(--danger); color: white; min-width: auto; padding: 0.5rem 1rem;">Detener
+                        Todo</button>
+                </div>
+                <div class="table-container">
+                    <table class="trades-table" style="margin-top: 0;">
+                        <thead>
+                            <tr>
+                                <th>Par</th>
+                                <th>TF</th>
+                                <th>Estrategia</th>
+                                <th>Tipo SL</th>
+                                <th>Valor SL</th>
+                                <th>Cap. Inicial</th>
+                                <th>Balance</th>
+                                <th>Posición</th>
+                                <th>PnL Actual</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="realActiveBotsBody">
+                            <tr>
+                                <td colspan="10"
+                                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay
+                                    monedas en seguimiento</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 2rem;">
+                <h3>Historial de Trades (BOT 01)</h3>
+                <div class="table-container">
+                    <table class="trades-table" style="margin-top: 1rem;">
+                        <thead>
+                            <tr>
+                                <th>Hora Entrada</th>
+                                <th>Par</th>
+                                <th>Tipo</th>
+                                <th>Precio Ent.</th>
+                                <th>Precio Sal.</th>
+                                <th>Comisión</th>
+                                <th>Funding</th>
+                                <th>PnL (USDT)</th>
+                                <th>Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="realTradesBody">
+                            <tr>
+                                <td colspan="9"
+                                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">Esperando
+                                    primer trade...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Session History Table (Real) -->
+            <div class="card" style="margin-top: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>Historial de Sesiones Finalizadas (BOT 01)</h3>
+                    <button class="btn-primary" onclick="clearRealBotHistory()"
+                        style="background: #444; color: #aaa; min-width: auto; padding: 4px 8px; font-size: 0.7rem;">Limpiar
+                        Historial</button>
+                </div>
+                <div class="table-container">
+                    <table class="trades-table" style="margin-top: 1rem;">
+                        <thead>
+                            <tr>
+                                <th>Par</th>
+                                <th>Estrategia</th>
+                                <th>Tipo SL</th>
+                                <th>Valor SL</th>
+                                <th>Cap. Inicial</th>
+                                <th>Balance Final</th>
+                                <th>PnL Neto</th>
+                                <th>Inicio</th>
+                                <th>Fin</th>
+                                <th>Duración</th>
+                                <th>Trades</th>
+                            </tr>
+                        </thead>
+                        <tbody id="realHistoryBotsBody">
+                            <tr>
+                                <td colspan="11"
+                                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                    No hay historial disponible</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="real-results" style="display: none; margin-top: 2rem;">
+                <div class="card" style="border-left: 4px solid var(--success);">
+                    <h3 id="real-status-text">Consola de Eventos (BOT 01)</h3>
+                    <div id="real-log"
+                        style="font-family: monospace; font-size: 0.85rem; height: 151px; overflow-y: auto; margin-top: 1rem; color: #aaa;">
+                    </div>
                 </div>
             </div>
         </div>

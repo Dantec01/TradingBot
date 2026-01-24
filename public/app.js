@@ -78,6 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(refreshActiveBots, 3000);
     setInterval(refreshBotHistory, 10000); // Poll history every 10s
 
+    // REAL BOT INIT
+    setupAutocompleteReal();
+    setupClearButtonReal();
+    refreshRealActiveBots();
+    refreshRealBotHistory();
+    setInterval(refreshRealActiveBots, 3000);
+    setInterval(refreshRealBotHistory, 10000);
+
     // Unlock Audio Context on first interaction
     document.body.addEventListener('click', () => {
         CASHIER_SOUND.play().then(() => {
@@ -833,6 +841,387 @@ async function stopAllBots() {
     }
 }
 
+// --- REAL BOT FUNCTIONS (BOT 01) ---
+
+function setupClearButtonReal() {
+    const clearBtn = document.getElementById('real-clearSymbol');
+    const input = document.getElementById('real-symbol');
+    if (!clearBtn || !input) return;
+
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+        input.focus();
+        input.dispatchEvent(new Event('input'));
+    });
+}
+
+function setupAutocompleteReal() {
+    const input = document.getElementById('real-symbol');
+    const list = document.getElementById('real-symbolSuggestions');
+    if (!input || !list) return;
+
+    input.addEventListener('input', (e) => {
+        const val = e.target.value.toUpperCase();
+        if (val === '') {
+            const popular = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA'].map(s => ({ symbol: s + 'USDT', baseAsset: s, isRecent: true }));
+            const matches = recentSymbols.length > 0
+                ? recentSymbols.map(s => ({ symbol: s + 'USDT', baseAsset: s, isRecent: true }))
+                : popular;
+            renderSuggestionsReal(matches, true);
+            return;
+        }
+
+        const matches = allSymbols.filter(s => s.symbol.includes(val) || s.baseAsset.includes(val)).slice(0, 10);
+        renderSuggestionsReal(matches);
+    });
+
+    input.addEventListener('focus', () => {
+        if (input.value === '') {
+            const popular = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'DOGE', 'ADA'].map(s => ({ symbol: s + 'USDT', baseAsset: s, isRecent: true }));
+            const matches = recentSymbols.length > 0
+                ? recentSymbols.map(s => ({ symbol: s + 'USDT', baseAsset: s, isRecent: true }))
+                : popular;
+            renderSuggestionsReal(matches, true);
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        const clearBtn = document.getElementById('real-clearSymbol');
+        if (e.target !== input && e.target !== list && !list.contains(e.target) && e.target !== clearBtn) {
+            list.style.display = 'none';
+        }
+    });
+}
+
+function renderSuggestionsReal(matches, showRecentHeader = false) {
+    const list = document.getElementById('real-symbolSuggestions');
+    if (matches.length === 0) {
+        list.style.display = 'none';
+        return;
+    }
+
+    list.innerHTML = '';
+    if (showRecentHeader) {
+        const header = document.createElement('div');
+        header.className = 'suggestion-header';
+        header.innerText = 'Recientes';
+        header.style.cssText = 'padding: 8px 12px; color: #888; font-size: 0.8rem; border-bottom: 1px solid #333;';
+        list.appendChild(header);
+    }
+
+    matches.forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'suggestion-item';
+        div.innerHTML = `
+            <span class="symbol-text">${m.baseAsset}</span>
+            ${m.isRecent ? '<span class="symbol-desc" style="color: #ffeb3b;">★</span>' : `<span class="symbol-desc">${m.symbol}</span>`}
+        `;
+        div.onclick = () => {
+            document.getElementById('real-symbol').value = m.baseAsset;
+            list.style.display = 'none';
+        };
+        list.appendChild(div);
+    });
+    list.style.display = 'block';
+}
+
+function handleStopExclusionReal(type) {
+    const fixed = document.getElementById('real-useFixedSL');
+    const breakeven = document.getElementById('real-useBreakeven');
+    const trailing = document.getElementById('real-useTrailing');
+
+    if (type === 'FIXED' && fixed.checked) {
+        breakeven.checked = false;
+        trailing.checked = false;
+        document.getElementById('real-stopLossPct').disabled = false;
+        document.getElementById('real-trailingPct').disabled = true;
+    } else if (type === 'BREAKEVEN' && breakeven.checked) {
+        fixed.checked = false;
+        trailing.checked = false;
+        document.getElementById('real-stopLossPct').disabled = true;
+        document.getElementById('real-trailingPct').disabled = true;
+    } else if (type === 'TRAILING' && trailing.checked) {
+        fixed.checked = false;
+        breakeven.checked = false;
+        document.getElementById('real-stopLossPct').disabled = true;
+        document.getElementById('real-trailingPct').disabled = false;
+    }
+    updateUsdtValuesReal();
+}
+
+function updateUsdtValuesReal() {
+    const cap = parseFloat(document.getElementById('real-orderSize').value) || 0;
+
+    // Fixed SL Value
+    const slPct = parseFloat(document.getElementById('real-stopLossPct').value) || 0;
+    const fixedUsdt = (cap * (slPct / 100)).toFixed(2);
+    document.getElementById('real-fixedUsdt').innerText = `${fixedUsdt} USDT`;
+
+    // Trailing SL Value (Estimate based on gap)
+    const trainlingPct = parseFloat(document.getElementById('real-trailingPct').value) || 0;
+    const trailingUsdt = (cap * (trainlingPct / 100)).toFixed(2);
+    document.getElementById('real-trailingUsdt').innerText = `${trailingUsdt} USDT`;
+}
+
+
+async function runRealBot() {
+    const runBtn = document.getElementById('real-runBtn');
+    runBtn.innerText = 'Iniciando...';
+    runBtn.disabled = true;
+
+    let derivedMode = 'FIXED';
+    if (document.getElementById('real-useBreakeven').checked) derivedMode = 'BREAKEVEN';
+    else if (document.getElementById('real-useTrailing').checked) derivedMode = 'TRAILING';
+    else if (!document.getElementById('real-useFixedSL').checked) derivedMode = 'NONE';
+
+    const config = {
+        symbol: document.getElementById('real-symbol').value,
+        timeframe: document.getElementById('real-timeframe').value,
+        initialCapital: document.getElementById('real-initialCapital').value,
+        orderSize: document.getElementById('real-orderSize').value,
+        stopLossPct: document.getElementById('real-stopLossPct').value,
+        leverage: document.getElementById('real-leverage').value,
+        direction: document.getElementById('real-direction').value,
+        strategy: document.getElementById('real-strategy').value,
+        slMode: derivedMode,
+        trailingPct: document.getElementById('real-trailingPct').value,
+        mode: document.getElementById('real-mode').value
+    };
+
+    saveRecentSymbol(config.symbol);
+
+    try {
+        const res = await fetch('/api/real-bot/pair/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+
+        await res.json();
+        logRealBotEvent(`[REAL BOT] Iniciado para ${config.symbol}`);
+        refreshRealActiveBots();
+
+    } catch (err) {
+        alert('Error Real Bot: ' + err.message);
+    } finally {
+        runBtn.innerText = 'Iniciar BOT 01';
+        runBtn.disabled = false;
+    }
+}
+
+async function refreshRealActiveBots() {
+    try {
+        const res = await fetch('/api/real-bot/status');
+        const data = await res.json();
+
+        // Update connection badge
+        const wsBadge = document.getElementById('real-ws-status');
+        if (wsBadge) {
+            if (data.connection === 'CONNECTED') {
+                wsBadge.innerText = 'CONECTADO';
+                wsBadge.style.background = 'rgba(0, 230, 118, 0.2)';
+                wsBadge.style.color = '#00e676';
+            } else if (data.connection === 'RECONNECTING') {
+                wsBadge.innerText = `RECONECTANDO...`;
+                wsBadge.style.background = 'rgba(255, 171, 0, 0.2)';
+                wsBadge.style.color = '#ffab00';
+            } else if (data.connection === 'CONNECTING') {
+                wsBadge.innerText = 'CONECTANDO...';
+                wsBadge.style.background = 'rgba(33, 150, 243, 0.2)';
+                wsBadge.style.color = '#2196f3';
+            } else {
+                wsBadge.innerText = 'DESCONECTADO';
+                wsBadge.style.background = 'rgba(255, 23, 68, 0.2)';
+                wsBadge.style.color = '#ff1744';
+            }
+        }
+
+        const bots = data.bots;
+        const tbody = document.getElementById('realActiveBotsBody');
+        const tradesBody = document.getElementById('realTradesBody');
+
+        if (bots.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay monedas en seguimiento</td></tr>';
+            tradesBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Esperando primer trade...</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        let allLiveTrades = [];
+
+        bots.forEach(bot => {
+            // Check for new trades (Sound logic duplicated or shared? Shared CASHIER_SOUND but separate tracking)
+            // Ideally we need separate tracking for real bot states to avoid conflicts
+            // For now, let's play sound on any trade
+            const prev = botStateHistory.get('REAL_' + bot.symbol) || { tradesCount: 0, hasPosition: false };
+            const currentHasPos = !!bot.position;
+            const currentTradesCount = bot.totalTrades;
+
+            if ((currentHasPos && !prev.hasPosition) || (currentTradesCount > prev.tradesCount)) {
+                playCashier();
+                console.log(`[AUDIO] Sound triggered for REAL ${bot.symbol}`);
+            }
+
+            botStateHistory.set('REAL_' + bot.symbol, {
+                tradesCount: currentTradesCount,
+                hasPosition: currentHasPos
+            });
+
+            const tr = document.createElement('tr');
+            let posBadge = '';
+            if (bot.position) {
+                posBadge = `<span class="badge ${bot.position.type === 'LONG' ? 'badge-long' : 'badge-short'}">${bot.position.type}</span>`;
+            } else if (bot.pendingReEntry) {
+                const signal = bot.pendingReEntry.neededSignal === 'Buy' ? 'LONG' : 'SHORT';
+                posBadge = `<span class="badge" style="background: rgba(255, 171, 0, 0.2); color: #ffab00;">ESPERANDO ${signal}</span>`;
+            } else {
+                posBadge = `<span class="badge" style="background: #222; color: #888;">MONITOREANDO</span>`;
+            }
+
+            tr.innerHTML = `
+                <td><strong>${bot.symbol}</strong></td>
+                <td><span style="font-size: 0.75rem; background: #222; padding: 2px 4px; border-radius: 4px; color: #aaa;">${bot.timeframe}</span></td>
+                <td><span style="font-size: 0.75rem; color: var(--text-secondary);">${bot.strategy}</span></td>
+                <td><span style="font-size: 0.75rem; color: #ccc;">${bot.slMode}</span></td>
+                <td><span style="font-size: 0.75rem; color: #ccc;">${bot.stopLossPct}%</span></td>
+                <td>$${Number(bot.initialCapital).toFixed(2)}</td>
+                <td>$${bot.balance.toFixed(2)}</td>
+                <td>${posBadge}</td>
+                <td>${bot.roi.toFixed(2)}%</td>
+                <td>
+                    <button class="btn-primary" onclick="stopRealBot('${bot.symbol}')" style="background: var(--danger); min-width: auto; font-size: 0.7rem; padding: 4px 8px;">Detener</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+
+            bot.trades.forEach(t => {
+                allLiveTrades.push({ ...t, symbol: bot.symbol });
+            });
+        });
+
+        allLiveTrades.sort((a, b) => b.exitTime - a.exitTime);
+
+        if (allLiveTrades.length > 0) {
+            tradesBody.innerHTML = '';
+            allLiveTrades.slice(0, 50).forEach(t => {
+                const tr = document.createElement('tr');
+                const timeStr = new Date(t.exitTime).toLocaleTimeString();
+                const pnlClass = t.pnl >= 0 ? 'text-green' : 'text-red';
+
+                tr.innerHTML = `
+                    <td style="color: #888;">${timeStr}</td>
+                    <td><strong>${t.symbol}</strong></td>
+                    <td><span class="badge ${t.type === 'LONG' ? 'badge-long' : 'badge-short'}">${t.type}</span></td>
+                    <td>${t.entryPrice.toFixed(2)}</td>
+                    <td>${t.exitPrice.toFixed(2)}</td>
+                    <td style="color: #888;">$${(t.commission || 0).toFixed(3)}</td>
+                    <td style="color: #888;">$${(t.funding || 0).toFixed(3)}</td>
+                    <td class="${pnlClass}">$${t.pnl.toFixed(2)}</td>
+                    <td style="color: #666; font-size: 0.8rem;">${t.reason}</td>
+                `;
+                tradesBody.appendChild(tr);
+            });
+        }
+
+    } catch (err) {
+        console.error("Error refreshing REAL bots:", err);
+    }
+}
+
+async function stopRealBot(symbol) {
+    if (!confirm(`¿Detener REAL BOT para ${symbol}? Se guardará el historial.`)) return;
+    try {
+        await fetch('/api/real-bot/pair/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol })
+        });
+        refreshRealActiveBots();
+        setTimeout(refreshRealBotHistory, 1000);
+        logRealBotEvent(`[SISTEMA] Real Bot ${symbol} detenido.`);
+    } catch (err) {
+        alert("Error: " + err.message);
+    }
+}
+
+async function stopAllRealBots() {
+    if (!confirm("¿Detener TODOS los bots REALES?")) return;
+    try {
+        await fetch('/api/real-bot/stop-all', { method: 'POST' });
+        refreshRealActiveBots();
+        setTimeout(refreshRealBotHistory, 1000);
+        logRealBotEvent(`[SISTEMA] Todos los bots reales detenidos.`);
+    } catch (err) {
+        alert("Error: " + err.message);
+    }
+}
+
+async function refreshRealBotHistory() {
+    try {
+        const res = await fetch('/api/real-bot/history');
+        const history = await res.json();
+        const tbody = document.getElementById('realHistoryBotsBody');
+
+        if (history.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay historial disponible</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        history.forEach(entry => {
+            const tr = document.createElement('tr');
+
+            const formatDate = (ts) => new Date(ts).toLocaleString('es-ES', {
+                month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+            });
+
+            const pnlClass = entry.pnl >= 0 ? 'text-green' : 'text-red';
+            const pnlSign = entry.pnl >= 0 ? '+' : '';
+
+            tr.innerHTML = `
+                <td><strong>${entry.symbol}</strong> <span style="font-size:0.7em; color:#888;">${entry.timeframe}</span></td>
+                <td><span style="font-size: 0.75rem; color: var(--text-secondary);">${entry.strategy}</span></td>
+                <td><span style="font-size: 0.75rem; color: #ccc;">${entry.slMode}</span></td>
+                <td><span style="font-size: 0.75rem; color: #ccc;">${entry.stopLossPct}%</span></td>
+                <td>$${Number(entry.initialCapital).toFixed(2)}</td>
+                <td>$${Number(entry.finalBalance).toFixed(2)}</td>
+                <td class="${pnlClass}" style="font-weight:bold;">${pnlSign}$${Number(entry.pnl).toFixed(2)}</td>
+                <td style="font-size: 0.75rem; color: #aaa;">${formatDate(entry.startTime)}</td>
+                <td style="font-size: 0.75rem; color: #aaa;">${formatDate(entry.endTime)}</td>
+                <td><span class="badge" style="background:#333;">${entry.duration}</span></td>
+                <td>${entry.totalTrades}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (err) {
+        console.error("Error refreshing REAL history:", err);
+    }
+}
+
+async function clearRealBotHistory() {
+    if (!confirm("¿Borrar todo el historial de sesiones REALES?")) return;
+    try {
+        await fetch('/api/real-bot/history/clear', { method: 'POST' });
+        refreshRealBotHistory();
+    } catch (err) {
+        alert("Error: " + err.message);
+    }
+}
+
+function logRealBotEvent(msg) {
+    const log = document.getElementById('real-log');
+    const resDiv = document.getElementById('real-results');
+    resDiv.style.display = 'block';
+
+    const time = new Date().toLocaleTimeString();
+    const entry = document.createElement('div');
+    entry.style.marginBottom = '4px';
+    entry.innerText = `[${time}] ${msg}`;
+    log.prepend(entry);
+}
+
 async function refreshBotHistory() {
     try {
         const res = await fetch('/api/bot/history');
@@ -872,6 +1261,16 @@ async function refreshBotHistory() {
         });
     } catch (err) {
         console.error("Error refreshing history:", err);
+    }
+}
+
+async function clearBotHistory() {
+    if (!confirm("¿Borrar todo el historial de sesiones finalizadas?")) return;
+    try {
+        await fetch('/api/bot/history/clear', { method: 'POST' });
+        refreshBotHistory();
+    } catch (err) {
+        alert("Error: " + err.message);
     }
 }
 
