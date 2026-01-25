@@ -38,9 +38,10 @@ function playAlarm() {
             isAlarmPlaying = true;
             document.body.style.animation = "flashRed 1s infinite"; // Efecto visual
             alert("⚠️ ALERTA CRÍTICA: ¡CONEXIÓN CON EL BOT PERDIDA! ⚠️");
-        }).catch(e => {
-            console.warn("Alarm audio blocked.", e);
-            showVisualNotification('⚠️ DESCONECTADO (Sonido Bloqueado) ⚠️');
+        }).catch(() => {
+            // Audio blocked by browser policy (user hasn't interacted yet)
+            // Using visual fallback silently
+            showVisualNotification('⚠️ DESCONECTADO ⚠️');
         });
     }
 }
@@ -367,7 +368,8 @@ async function runBacktest() {
         slMode: derivedMode,
         trailingPct: document.getElementById('trailingPct').value,
         startDate: document.getElementById('startDate').value,
-        endDate: document.getElementById('endDate').value
+        endDate: document.getElementById('endDate').value,
+        takerFee: document.getElementById('takerFee').value // New custom fee
     };
 
     // Save symbol to recent list
@@ -502,6 +504,15 @@ function drawChart(candles, trades) {
         wickUpColor: '#00e676',
     });
 
+    // Add SL Series
+    const slSeries = chart.addLineSeries({
+        color: '#ff9800', // Orange
+        lineWidth: 1,
+        lineStyle: 2, // Dashed
+        title: 'Stop Loss',
+        crosshairMarkerVisible: false
+    });
+
     // Process candle data for Lightweight Charts (time in seconds)
     const chartData = candles.map(c => ({
         time: c.time / 1000,
@@ -515,6 +526,22 @@ function drawChart(candles, trades) {
     chartData.sort((a, b) => a.time - b.time);
 
     candleSeries.setData(chartData);
+
+    // SL Data
+    const slData = [];
+    candles.forEach(c => {
+        if (c.stopLoss && c.stopLoss > 0) {
+            slData.push({ time: c.time / 1000, value: c.stopLoss });
+        } else {
+            // Optional: Insert NaN to break the line if supported, or just skip
+            // Using whitespace or just skipping relies on library behavior. 
+            // For now, skipping. If lines connect across large gaps, it's acceptable.
+            // slData.push({ time: c.time / 1000, value: NaN }); 
+        }
+    });
+    // Sort just in case
+    slData.sort((a, b) => a.time - b.time);
+    slSeries.setData(slData);
 
     // Add markers
     const markers = [];
@@ -998,6 +1025,47 @@ function updateUsdtValuesReal() {
     document.getElementById('real-trailingUsdt').innerText = `${trailingUsdt} USDT`;
 }
 
+// ========== REAL BOT LOG FUNCTIONS ==========
+
+function updateRealBotLog(logs) {
+    const logContainer = document.getElementById('real-log');
+    const resultsDiv = document.getElementById('real-results');
+
+    if (!logContainer || !resultsDiv) return;
+
+    // Show the console section
+    resultsDiv.style.display = 'block';
+
+    if (!logs || logs.length === 0) {
+        logContainer.innerHTML = '<span style="color: #666;">Sin logs...</span>';
+        return;
+    }
+
+    // Render logs with color coding
+    logContainer.innerHTML = logs.slice(0, 50).map(log => {
+        let color = '#aaa';
+        if (log.level === 'ERROR') color = '#ff1744';
+        else if (log.level === 'WARN') color = '#ffab00';
+        else if (log.level === 'SUCCESS') color = '#00e676';
+        else if (log.level === 'INFO') color = '#2196f3';
+
+        const time = new Date(log.time).toLocaleTimeString();
+        return `<div style="color: ${color}; margin-bottom: 4px;">[${time}] ${log.message}</div>`;
+    }).join('');
+}
+
+function logRealBotEvent(message) {
+    const logContainer = document.getElementById('real-log');
+    const resultsDiv = document.getElementById('real-results');
+
+    if (resultsDiv) resultsDiv.style.display = 'block';
+    if (logContainer) {
+        const time = new Date().toLocaleTimeString();
+        logContainer.innerHTML = `<div style="color: #2196f3; margin-bottom: 4px;">[${time}] ${message}</div>` + logContainer.innerHTML;
+    }
+}
+
+// ========================================
 
 async function runRealBot() {
     const runBtn = document.getElementById('real-runBtn');
