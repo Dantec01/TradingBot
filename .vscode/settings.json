@@ -1,3 +1,7 @@
 {
-    "CodeGPT.apiKey": "Anthropic"
+    "CodeGPT.apiKey": "Anthropic",
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        ".vscode{,/**}"
+    ]
 }
