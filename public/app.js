@@ -371,7 +371,10 @@ async function runBacktest() {
         trailingPct: document.getElementById('trailingPct').value,
         startDate: document.getElementById('startDate').value,
         endDate: document.getElementById('endDate').value,
-        takerFee: document.getElementById('takerFee').value // New custom fee
+        takerFee: document.getElementById('takerFee').value,
+        // SPIRIT_ELITE Config
+        eliteActivationPct: (parseFloat(document.getElementById('eliteActivationPct')?.value) || 0.2) / 100, // Convert % to decimal
+        eliteTickOffset: parseFloat(document.getElementById('eliteTickOffset')?.value) || 0.0001
     };
 
     // Save symbol to recent list
@@ -1587,9 +1590,15 @@ function setupSpiritShieldLock() {
 
     // 1. Backtest
     const btStrat = document.getElementById('strategy');
+    const eliteConfigDiv = document.getElementById('eliteConfig');
+
     if (btStrat) {
         btStrat.addEventListener('change', () => {
-            toggleSLFields('', btStrat.value === 'SPIRIT_SHIELD');
+            toggleSLFields('', btStrat.value === 'SPIRIT_SHIELD' || btStrat.value === 'SPIRIT_ELITE');
+            // Show/hide elite config
+            if (eliteConfigDiv) {
+                eliteConfigDiv.style.display = btStrat.value === 'SPIRIT_ELITE' ? 'block' : 'none';
+            }
         });
     }
 
