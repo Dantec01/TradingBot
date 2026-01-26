@@ -96,6 +96,8 @@ function switchTab(tabId) {
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
+    setupVanguardLock();
+
     loadPersistedData();
     loadSymbols();
     setupAutocomplete();
@@ -543,27 +545,78 @@ function drawChart(candles, trades) {
     slData.sort((a, b) => a.time - b.time);
     slSeries.setData(slData);
 
+    // Create a Set of valid candle times (seconds) for O(1) lookup/snapping
+    // Assuming candles are sorted.
+    // If a trade time doesn't match, we map it to the candle that covers it.
+    // Since we don't know the interval explicitly here easily without calculation, 
+    // we can assume the trade belongs to the candle with time <= tradeTime.
+
+    // 1. Build map of times
+    const validTimes = new Set(chartData.map(d => d.time));
+    const sortedTimes = chartData.map(d => d.time); // ASC sorted
+
+    // Helper to find closest candle time (floor)
+    const findCandleTime = (tsSec) => {
+        if (validTimes.has(tsSec)) return tsSec;
+
+        // Binary search or linear scan (efficient enough for < 10k bars usually, but binary is better)
+        // Let's do a simple reverse find since trades usually happen near end or recent? 
+        // No, binary search or simple approximation.
+        // Actually, just iterating backwards from the end of sortedTimes until <= tsSec is fine 
+        // IF we assume coverage. But trades might be outside range? 
+
+        // Let's use a simpler approach: 
+        // The exit time MUST be >= Candle Open Time and < Next Candle Open Time.
+        // So we find the largest validTime <= tsSec.
+
+        let l = 0, r = sortedTimes.length - 1;
+        let ans = -1;
+        while (l <= r) {
+            const mid = Math.floor((l + r) / 2);
+            if (sortedTimes[mid] <= tsSec) {
+                ans = sortedTimes[mid];
+                l = mid + 1;
+            } else {
+                r = mid - 1;
+            }
+        }
+        return ans;
+    };
+
     // Add markers
     const markers = [];
     trades.forEach(t => {
-        // Entry
-        markers.push({
-            time: t.entryTime / 1000,
-            position: t.type === 'LONG' ? 'belowBar' : 'aboveBar',
-            color: '#ffea00',
-            shape: t.type === 'LONG' ? 'arrowUp' : 'arrowDown',
-            text: 'ENTRY ' + t.type
-        });
+        // Entry - usually matches candle open time exactly if CLOSE_ENTRY from backtest
+        // But for OPEN_ENTRY or VANGUARD it might vary.
+        const entryTimeSec = t.entryTime / 1000;
+        const snappedEntry = findCandleTime(entryTimeSec);
+
+        if (snappedEntry !== -1) {
+            markers.push({
+                time: snappedEntry,
+                position: t.type === 'LONG' ? 'belowBar' : 'aboveBar',
+                color: '#ffea00',
+                shape: t.type === 'LONG' ? 'arrowUp' : 'arrowDown',
+                text: 'ENTRY ' + t.type
+            });
+        }
+
         // Exit
-        markers.push({
-            time: t.exitTime / 1000,
-            position: t.type === 'LONG' ? 'aboveBar' : 'belowBar',
-            color: t.pnl > 0 ? '#00e676' : '#ff1744',
-            shape: 'circle',
-            text: '$' + t.pnl.toFixed(2) // Short text
-        });
+        const exitTimeSec = t.exitTime / 1000;
+        const snappedExit = findCandleTime(exitTimeSec);
+
+        if (snappedExit !== -1) {
+            markers.push({
+                time: snappedExit,
+                position: t.type === 'LONG' ? 'aboveBar' : 'belowBar',
+                color: t.pnl > 0 ? '#00e676' : '#ff1744',
+                shape: 'circle',
+                text: `$${t.pnl.toFixed(2)} (${t.exitPrice.toFixed(4)}) [${t.reason}]`
+            });
+        }
     });
-    // Sort markers by time
+
+    // Sort markers by time (required by library)
     markers.sort((a, b) => a.time - b.time);
 
     candleSeries.setMarkers(markers);
@@ -1434,6 +1487,141 @@ async function refreshBotHistory() {
         console.error("Error refreshing history:", err);
     }
 }
+
+function setupVanguardLock() {
+    // 1. For Live Bot (Paper)
+    const liveStrat = document.getElementById('live-strategy');
+    const liveTf = document.getElementById('live-timeframe');
+    const liveWarn = document.getElementById('live-vanguard-warning');
+
+    if (liveStrat && liveTf) {
+        liveStrat.addEventListener('change', () => {
+            if (liveStrat.value === 'VANGUARD') {
+                liveTf.value = '5m';
+                liveTf.disabled = true;
+                if (liveWarn) liveWarn.style.display = 'block';
+            } else {
+                liveTf.disabled = false;
+                if (liveWarn) liveWarn.style.display = 'none';
+            }
+        });
+    }
+
+    // 2. For Real Bot
+    // We use a specific selector for the Real Bot strategy dropdown if ID is ambiguous, 
+    // but we updated index.html to likely use standard IDs or simply 'realBotForm' context.
+    // Based on previous edits, the ID 'real-strategy' was NOT explicitly added, but the select exists.
+    // Let's target it via the form to be safe: #realBotForm select (Strategy is usually the 2nd or 3rd select)
+    // Or let's assume the user added ID or we target by name if available.
+    // Best bet: Selector by structure since we didn't confirm ID addition.
+    // Structure: #realBotForm .form-group select[id="real-strategy"] (if it exists) OR just finding the select with options.
+    // However, since we edited index.html to include VANGUARD option, let's assume we can find it.
+
+    // TRICK: We can find it by the options it contains if ID is missing!
+    const selects = document.querySelectorAll('#realBotForm select');
+    let realStrat = null;
+    selects.forEach(s => {
+        if (s.querySelector('option[value="VANGUARD"]')) realStrat = s;
+    });
+
+    const realTf = document.getElementById('real-timeframe');
+    const realWarn = document.getElementById('real-vanguard-warning');
+
+    if (realStrat && realTf) {
+        realStrat.addEventListener('change', () => {
+            if (realStrat.value === 'VANGUARD') {
+                realTf.value = '5m';
+                realTf.disabled = true;
+                if (realWarn) realWarn.style.display = 'block';
+            } else {
+                realTf.disabled = false;
+                if (realWarn) realWarn.style.display = 'none';
+            }
+        });
+    }
+
+    // 3. For Backtest
+    const backtestStrat = document.getElementById('strategy');
+    const backtestTf = document.getElementById('timeframe');
+
+    if (backtestStrat && backtestTf) {
+        backtestStrat.addEventListener('change', () => {
+            if (backtestStrat.value === 'VANGUARD') {
+                backtestTf.value = '5m';
+                backtestTf.disabled = true;
+            } else {
+                backtestTf.disabled = false;
+            }
+        });
+    }
+}
+
+// --- SPIRIT SHIELD LOCK (Smart Breakeven UI) ---
+function setupSpiritShieldLock() {
+    // Helper to lock SL fields
+    const toggleSLFields = (formPrefix, isLocked) => {
+        const slInputs = [
+            `${formPrefix}useFixedSL`,
+            `${formPrefix}stopLossPct`,
+            `${formPrefix}useBreakeven`,
+            `${formPrefix}useTrailing`,
+            `${formPrefix}trailingPct`
+        ];
+
+        slInputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.disabled = isLocked;
+                // Auto-uncheck if locking
+                if (isLocked) {
+                    if (el.type === 'checkbox') el.checked = false;
+                    el.parentElement.style.opacity = '0.5';
+                    el.parentElement.style.pointerEvents = 'none';
+                } else {
+                    el.parentElement.style.opacity = '1';
+                    el.parentElement.style.pointerEvents = 'auto';
+                }
+            }
+        });
+    };
+
+    // 1. Backtest
+    const btStrat = document.getElementById('strategy');
+    if (btStrat) {
+        btStrat.addEventListener('change', () => {
+            toggleSLFields('', btStrat.value === 'SPIRIT_SHIELD');
+        });
+    }
+
+    // 2. Live Bot (Paper)
+    const liveStrat = document.getElementById('live-strategy');
+    if (liveStrat) {
+        liveStrat.addEventListener('change', () => {
+            toggleSLFields('live-', liveStrat.value === 'SPIRIT_SHIELD');
+        });
+    }
+
+    // 3. Real Bot
+    const selects = document.querySelectorAll('#realBotForm select');
+    let realStrat = null;
+    selects.forEach(s => {
+        // Look for the strategy dropdown by finding one that has 'VANGUARD' or 'SPIRIT' options
+        if (s.querySelector('option[value="VANGUARD"]')) realStrat = s;
+    });
+
+    if (realStrat) {
+        realStrat.addEventListener('change', () => {
+            toggleSLFields('real-', realStrat.value === 'SPIRIT_SHIELD');
+        });
+    }
+}
+
+// Init Locks
+document.addEventListener('DOMContentLoaded', () => {
+    setupVanguardLock();
+    setupSpiritShieldLock();
+    refreshBotHistory();
+});
 
 async function clearBotHistory() {
     if (!confirm("¿Borrar todo el historial de sesiones finalizadas?")) return;

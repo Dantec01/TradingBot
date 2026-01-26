@@ -174,7 +174,9 @@
                                 <option value="SPIRIT_EXPERIMENTAL">Spirit Experimental (SL Dinámico)</option>
                                 <option value="SPIRIT_EXPERIMENTAL_FIXED">Spirit Exp. Fixed (SL Dinámico +500ms)
                                 </option>
+                                <option value="SPIRIT_SHIELD">Spirit Shield (Smart Breakeven)</option>
                                 <option value="BACKGUARD">BACKGUARD (Limit Entry + Delayed Trailing)</option>
+                                <option value="VANGUARD">VANGUARD (Multi-TF 5m/1m)</option>
                             </select>
                         </div>
 
@@ -376,7 +378,12 @@
                                 <option value="SPIRIT_EXPERIMENTAL">Spirit Experimental</option>
                                 <option value="SPIRIT_EXPERIMENTAL_FIXED">Spirit Exp. Fixed (+500ms)</option>
                                 <option value="BACKGUARD">BACKGUARD (Limit + Delayed Trailing)</option>
+                                <option value="VANGUARD">VANGUARD (Multi-TF 5m/1m)</option>
                             </select>
+                            <small id="live-vanguard-warning"
+                                style="display: none; color: var(--accent-secondary); margin-top: 5px;">
+                                <i class="fas fa-info-circle"></i> VANGUARD bloquea la temporalidad a 5m.
+                            </small>
                         </div>
 
                         <div class="form-group">
@@ -623,7 +630,11 @@
                                 <option value="SPIRIT_EXPERIMENTAL">Spirit Experimental</option>
                                 <option value="SPIRIT_EXPERIMENTAL_FIXED">Spirit Exp. Fixed (+500ms)</option>
                                 <option value="BACKGUARD">BACKGUARD (Limit + Delayed Trailing)</option>
+                                <option value="VANGUARD">VANGUARD (Multi-TF 5m/1m)</option>
                             </select>
+                            <small id="real-vanguard-warning" style="display: none; color: #ffeb3b; margin-top: 5px;">
+                                <i class="fas fa-info-circle"></i> VANGUARD fuerza temporalidad a 5m.
+                            </small>
                         </div>
                         <div class="form-group">
                             <label>Dirección</label>

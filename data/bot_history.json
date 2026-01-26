@@ -110,5 +110,53 @@
     "endTime": 1769370388897,
     "duration": "7h 39m",
     "totalTrades": 8
+  },
+  {
+    "id": "176938413023275cp3",
+    "symbol": "SAFE",
+    "timeframe": "5m",
+    "strategy": "SPIRIT_TRAILING",
+    "slMode": "TRAILING",
+    "stopLossPct": 1,
+    "mode": "PAPER",
+    "initialCapital": 105,
+    "finalBalance": 99.19299939095487,
+    "pnl": -5.807000609045133,
+    "startTime": 1769342839958,
+    "endTime": 1769384130232,
+    "duration": "11h 28m",
+    "totalTrades": 8
+  },
+  {
+    "id": "1769384133973dbgwg",
+    "symbol": "ROSE",
+    "timeframe": "15m",
+    "strategy": "SPIRIT_EXPERIMENTAL_FIXED",
+    "slMode": "NONE",
+    "stopLossPct": 1,
+    "mode": "PAPER",
+    "initialCapital": 100,
+    "finalBalance": 112.04468436619591,
+    "pnl": 12.04468436619591,
+    "startTime": 1769352777844,
+    "endTime": 1769384133973,
+    "duration": "8h 42m",
+    "totalTrades": 16
+  },
+  {
+    "id": "176939658485187uoq",
+    "symbol": "BTC",
+    "timeframe": "15m",
+    "strategy": "CLOSE_ENTRY",
+    "slMode": "TRAILING",
+    "stopLossPct": 1,
+    "mode": "PAPER",
+    "initialCapital": 100,
+    "finalBalance": 100,
+    "pnl": 0,
+    "startTime": 1769396569851,
+    "endTime": 1769396584851,
+    "duration": "0h 0m",
+    "totalTrades": 0
   }
 ]
