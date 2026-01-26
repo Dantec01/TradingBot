@@ -399,6 +399,8 @@
                                 <option value="SPIRIT_TRAILING">Spirit Trailing</option>
                                 <option value="SPIRIT_EXPERIMENTAL">Spirit Experimental</option>
                                 <option value="SPIRIT_EXPERIMENTAL_FIXED">Spirit Exp. Fixed (+500ms)</option>
+                                <option value="SPIRIT_SHIELD">Spirit Shield (Smart Breakeven)</option>
+                                <option value="SPIRIT_ELITE">Spirit Elite (Limit + Profit-Triggered SL)</option>
                                 <option value="BACKGUARD">BACKGUARD (Limit + Delayed Trailing)</option>
                                 <option value="VANGUARD">VANGUARD (Multi-TF 5m/1m)</option>
                             </select>
@@ -406,6 +408,27 @@
                                 style="display: none; color: var(--accent-secondary); margin-top: 5px;">
                                 <i class="fas fa-info-circle"></i> VANGUARD bloquea la temporalidad a 5m.
                             </small>
+                        </div>
+
+                        <!-- SPIRIT_ELITE Config (Paper Bot) -->
+                        <div id="live-eliteConfig" class="form-group" style="grid-column: span 2; display: none;">
+                            <label>Configuración Spirit Elite</label>
+                            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <label for="live-eliteActivationPct" style="width: auto; font-size: 0.85rem;">%
+                                        Activación:</label>
+                                    <input type="number" id="live-eliteActivationPct" value="0.2" step="0.01"
+                                        style="width: 70px;">
+                                    <span style="font-size: 0.75rem; color: #888;">%</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <label for="live-eliteTickOffset" style="width: auto; font-size: 0.85rem;">Tick
+                                        Offset:</label>
+                                    <input type="number" id="live-eliteTickOffset" value="0.0001" step="0.0001"
+                                        style="width: 90px;">
+                                    <span style="font-size: 0.75rem; color: #888;">(puntos)</span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -548,378 +571,466 @@
 
         <!-- Tab: Real Bot (BOT 01) -->
         <div id="real-bot-pane" class="tab-pane">
-            <div class="card">
-                <div style="margin-bottom: 20px;">
-                    <h2 style="display: flex; align-items: center; gap: 10px; color: #ffeb3b;">
-                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        BOT 01 (REAL TRADING)
-                    </h2>
-                    <p style="color: var(--text-secondary); margin-top: 5px; font-size: 0.9rem;">
-                        Entorno de ejecución aislado para Trading Real.
-                    </p>
+
+            <!-- Login Overlay for Protection -->
+            <div id="real-bot-login" class="card" style="max-width: 400px; margin: 40px auto; text-align: center;">
+                <h2 style="color: #ffeb3b; margin-bottom: 20px;">Acceso Protegido</h2>
+                <p style="color: #aaa; margin-bottom: 20px;">Ingrese la contraseña para acceder al Bot Real</p>
+                <div class="form-group">
+                    <input type="password" id="real-bot-password" placeholder="Contraseña..."
+                        style="text-align: center;">
                 </div>
-
-                <form id="realBotForm" onsubmit="event.preventDefault(); runRealBot();">
-                    <div class="config-grid">
-                        <div class="form-group" style="position: relative;">
-                            <label>Moneda (Ej: BTC, ETH)</label>
-                            <div class="input-with-clear">
-                                <input type="text" id="real-symbol" value="BTC" placeholder="Buscar moneda..."
-                                    autocomplete="off">
-                                <button type="button" id="real-clearSymbol" class="clear-btn"
-                                    title="Borrar">&times;</button>
-                            </div>
-                            <div id="real-symbolSuggestions" class="suggestions-list"></div>
-                        </div>
-                        <div class="form-group">
-                            <label>Temporalidad</label>
-                            <select id="real-timeframe">
-                                <option value="5m">5 Minutos</option>
-                                <option value="15m" selected>15 Minutos</option>
-                                <option value="1h">1 Hora</option>
-                                <option value="4h">4 Horas</option>
-                                <option value="1d">1 Día</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>API Key (Binance)</label>
-                            <input type="password" id="real-apiKey" placeholder="Opcional por ahora">
-                        </div>
-                        <div class="form-group">
-                            <label>Secret Key (Binance)</label>
-                            <input type="password" id="real-secretKey" placeholder="Opcional por ahora">
-                        </div>
-                        <div class="form-group">
-                            <label>Capital de Trabajo (USDT)</label>
-                            <input type="number" id="real-initialCapital" value="100" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label>Tamaño de la Orden (USDT)</label>
-                            <input type="number" id="real-orderSize" value="10" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label>Apalancamiento (x)</label>
-                            <input type="number" id="real-leverage" value="20">
-                        </div>
-                        <div class="form-group">
-                            <label>Modo de Ejecución</label>
-                            <select id="real-mode"
-                                style="border: 1px solid #ffeb3b; background: rgba(255, 235, 59, 0.1); color: #ffeb3b;">
-                                <option value="REAL_BOT_01" selected>MODO REAL (BOT 01)</option>
-                            </select>
-                        </div>
-
-                        <!-- Stop Loss Options -->
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>Gestión de Stop Loss (Solo uno activo)</label>
-                            <div class="stop-option-row"
-                                style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                                <input type="checkbox" id="real-useFixedSL" checked
-                                    onchange="handleStopExclusionReal('FIXED')" style="width: auto; margin: 0;">
-                                <label for="real-useFixedSL" style="width: 120px;">Stop Fijo (%):</label>
-                                <input type="number" id="real-stopLossPct" value="1.0" step="0.1" style="width: 80px;"
-                                    oninput="updateUsdtValuesReal()">
-                                <span id="real-fixedUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
-                            </div>
-                            <div class="stop-option-row"
-                                style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                                <input type="checkbox" id="real-useBreakeven"
-                                    onchange="handleStopExclusionReal('BREAKEVEN')" style="width: auto; margin: 0;">
-                                <label for="real-useBreakeven" style="width: 120px;">Stop Breakeven</label>
-                                <span style="font-size: 0.85rem; color: #888;">(Cierra en precio entrada)</span>
-                            </div>
-                            <div class="stop-option-row" style="display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" id="real-useTrailing"
-                                    onchange="handleStopExclusionReal('TRAILING')" style="width: auto; margin: 0;">
-                                <label for="real-useTrailing" style="width: 120px;">Trailing (%):</label>
-                                <input type="number" id="real-trailingPct" value="1.0" step="0.1" style="width: 80px;"
-                                    disabled oninput="updateUsdtValuesReal()">
-                                <span id="real-trailingUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Estrategia de Entrada</label>
-                            <select id="real-strategy">
-                                <option value="CLOSE_ENTRY" selected>Entrada al cierre de vela</option>
-                                <option value="OPEN_ENTRY">Entrada en apertura siguiente</option>
-                                <option value="SPIRIT">Estrategia Spirit (Re-entradas)</option>
-                                <option value="SPIRIT_IMPROVED">Spirit Mejorado</option>
-                                <option value="SPIRIT_TRAILING">Spirit Trailing</option>
-                                <option value="SPIRIT_EXPERIMENTAL">Spirit Experimental</option>
-                                <option value="SPIRIT_EXPERIMENTAL_FIXED">Spirit Exp. Fixed (+500ms)</option>
-                                <option value="BACKGUARD">BACKGUARD (Limit + Delayed Trailing)</option>
-                                <option value="VANGUARD">VANGUARD (Multi-TF 5m/1m)</option>
-                            </select>
-                            <small id="real-vanguard-warning" style="display: none; color: #ffeb3b; margin-top: 5px;">
-                                <i class="fas fa-info-circle"></i> VANGUARD fuerza temporalidad a 5m.
-                            </small>
-                        </div>
-                        <div class="form-group">
-                            <label>Dirección</label>
-                            <select id="real-direction">
-                                <option value="BOTH">Long &amp; Short</option>
-                                <option value="LONG">Solo Long</option>
-                                <option value="SHORT">Solo Short</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group" style="justify-content: flex-end;">
-                            <button type="submit" class="btn-primary" id="real-runBtn"
-                                style="background: #ffeb3b; color: #000;">Iniciar BOT 01</button>
-                        </div>
-                    </div>
-                </form>
+                <button class="btn-primary" onclick="checkRealBotAuth()"
+                    style="width: 100%; margin-top: 10px;">Desbloquear</button>
+                <p id="real-login-error" style="color: var(--danger); margin-top: 10px; display: none;">Contraseña
+                    incorrecta</p>
             </div>
 
-            <div class="card" style="margin-top: 2rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <h3>Bots Activos (BOT 01)</h3>
-                        <span id="real-ws-status" class="badge"
-                            style="background: #444; color: #aaa; font-size: 0.7rem;">DESCONECTADO</span>
+            <!-- Protected Content (Hidden by default) -->
+            <div id="real-bot-content" style="display: none;">
+                <div class="card">
+                    <div style="margin-bottom: 20px;">
+                        <h2 style="display: flex; align-items: center; gap: 10px; color: #ffeb3b;">
+                            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            BOT 01 (REAL TRADING)
+                        </h2>
+                        <p style="color: var(--text-secondary); margin-top: 5px; font-size: 0.9rem;">
+                            Entorno de ejecución aislado para Trading Real.
+                        </p>
                     </div>
 
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <div
-                            style="text-align: right; padding: 5px 15px; background: rgba(255, 235, 59, 0.1); border: 1px solid rgba(255, 235, 59, 0.3); border-radius: 8px; display: flex; align-items: center; gap: 10px;">
-                            <div>
-                                <span style="font-size: 0.8rem; color: #ffeb3b; display: block;">Balance Futuros</span>
-                                <span id="real-total-balance"
-                                    style="font-size: 1.2rem; font-weight: bold; color: #fff;">---</span>
+                    <form id="realBotForm" onsubmit="event.preventDefault(); runRealBot();">
+                        <div class="config-grid">
+                            <div class="form-group" style="position: relative;">
+                                <label>Moneda (Ej: BTC, ETH)</label>
+                                <div class="input-with-clear">
+                                    <input type="text" id="real-symbol" value="BTC" placeholder="Buscar moneda..."
+                                        autocomplete="off">
+                                    <button type="button" id="real-clearSymbol" class="clear-btn"
+                                        title="Borrar">&times;</button>
+                                </div>
+                                <div id="real-symbolSuggestions" class="suggestions-list"></div>
                             </div>
-                            <button onclick="fetchRealBalance()"
-                                style="background: none; border: none; color: #ffeb3b; cursor: pointer; font-size: 1.2rem;"
-                                title="Actualizar Saldo">↻</button>
+                            <div class="form-group">
+                                <label>Temporalidad</label>
+                                <select id="real-timeframe">
+                                    <option value="5m">5 Minutos</option>
+                                    <option value="15m" selected>15 Minutos</option>
+                                    <option value="1h">1 Hora</option>
+                                    <option value="4h">4 Horas</option>
+                                    <option value="1d">1 Día</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>API Key (Binance)</label>
+                                <input type="password" id="real-apiKey" placeholder="Opcional por ahora">
+                            </div>
+                            <div class="form-group">
+                                <label>Secret Key (Binance)</label>
+                                <input type="password" id="real-secretKey" placeholder="Opcional por ahora">
+                            </div>
+                            <div class="form-group">
+                                <label>Capital de Trabajo (USDT)</label>
+                                <input type="number" id="real-initialCapital" value="100" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>Tamaño de la Orden (USDT)</label>
+                                <input type="number" id="real-orderSize" value="10" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>Apalancamiento (x)</label>
+                                <input type="number" id="real-leverage" value="20">
+                            </div>
+                            <div class="form-group">
+                                <label>Modo de Ejecución</label>
+                                <select id="real-mode"
+                                    style="border: 1px solid #ffeb3b; background: rgba(255, 235, 59, 0.1); color: #ffeb3b;">
+                                    <option value="REAL_BOT_01" selected>MODO REAL (BOT 01)</option>
+                                </select>
+                            </div>
+
+                            <!-- Stop Loss Options -->
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Gestión de Stop Loss (Solo uno activo)</label>
+                                <div class="stop-option-row"
+                                    style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <input type="checkbox" id="real-useFixedSL" checked
+                                        onchange="handleStopExclusionReal('FIXED')" style="width: auto; margin: 0;">
+                                    <label for="real-useFixedSL" style="width: 120px;">Stop Fijo (%):</label>
+                                    <input type="number" id="real-stopLossPct" value="1.0" step="0.1"
+                                        style="width: 80px;" oninput="updateUsdtValuesReal()">
+                                    <span id="real-fixedUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
+                                </div>
+                                <div class="stop-option-row"
+                                    style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <input type="checkbox" id="real-useBreakeven"
+                                        onchange="handleStopExclusionReal('BREAKEVEN')" style="width: auto; margin: 0;">
+                                    <label for="real-useBreakeven" style="width: 120px;">Stop Breakeven</label>
+                                    <span style="font-size: 0.85rem; color: #888;">(Cierra en precio entrada)</span>
+                                </div>
+                                <div class="stop-option-row" style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox" id="real-useTrailing"
+                                        onchange="handleStopExclusionReal('TRAILING')" style="width: auto; margin: 0;">
+                                    <label for="real-useTrailing" style="width: 120px;">Trailing (%):</label>
+                                    <input type="number" id="real-trailingPct" value="1.0" step="0.1"
+                                        style="width: 80px;" disabled oninput="updateUsdtValuesReal()">
+                                    <span id="real-trailingUsdt" style="font-size: 0.85rem; color: #888;">0.00
+                                        USDT</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Estrategia de Entrada</label>
+                                <select id="real-strategy">
+                                    <option value="CLOSE_ENTRY" selected>Entrada al cierre de vela</option>
+                                    <option value="OPEN_ENTRY">Entrada en apertura siguiente</option>
+                                    <option value="SPIRIT">Estrategia Spirit (Re-entradas)</option>
+                                    <option value="SPIRIT_IMPROVED">Spirit Mejorado</option>
+                                    <option value="SPIRIT_TRAILING">Spirit Trailing</option>
+                                    <option value="SPIRIT_EXPERIMENTAL">Spirit Experimental</option>
+                                    <option value="SPIRIT_EXPERIMENTAL_FIXED">Spirit Exp. Fixed (+500ms)</option>
+                                    <option value="SPIRIT_SHIELD">Spirit Shield (Smart Breakeven)</option>
+                                    <option value="SPIRIT_ELITE">Spirit Elite (Limit + Profit-Triggered SL)</option>
+                                    <option value="BACKGUARD">BACKGUARD (Limit + Delayed Trailing)</option>
+                                    <option value="VANGUARD">VANGUARD (Multi-TF 5m/1m)</option>
+                                </select>
+                                <small id="real-vanguard-warning"
+                                    style="display: none; color: #ffeb3b; margin-top: 5px;">
+                                    <i class="fas fa-info-circle"></i> VANGUARD fuerza temporalidad a 5m.
+                                </small>
+                            </div>
+
+                            <!-- SPIRIT_ELITE Config (Real Bot) -->
+                            <div id="real-eliteConfig" class="form-group" style="grid-column: span 2; display: none;">
+                                <label>Configuración Spirit Elite</label>
+                                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <label for="real-eliteActivationPct" style="width: auto; font-size: 0.85rem;">%
+                                            Activación:</label>
+                                        <input type="number" id="real-eliteActivationPct" value="0.2" step="0.01"
+                                            style="width: 70px;">
+                                        <span style="font-size: 0.75rem; color: #888;">%</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <label for="real-eliteTickOffset" style="width: auto; font-size: 0.85rem;">Tick
+                                            Offset:</label>
+                                        <input type="number" id="real-eliteTickOffset" value="0.0001" step="0.0001"
+                                            style="width: 90px;">
+                                        <span style="font-size: 0.75rem; color: #888;">(puntos)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Dirección</label>
+                                <select id="real-direction">
+                                    <option value="BOTH">Long &amp; Short</option>
+                                    <option value="LONG">Solo Long</option>
+                                    <option value="SHORT">Solo Short</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" style="justify-content: flex-end;">
+                                <button type="submit" class="btn-primary" id="real-runBtn"
+                                    style="background: #ffeb3b; color: #000;">Iniciar BOT 01</button>
+                            </div>
                         </div>
-                        <button class="btn-primary" onclick="stopAllRealBots()"
-                            style="background: var(--danger); color: white; min-width: auto; padding: 0.5rem 1rem;">Detener
-                            Todo</button>
+                    </form>
+                </div>
+
+                <div class="card" style="margin-top: 2rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <h3>Bots Activos (BOT 01)</h3>
+                            <span id="real-ws-status" class="badge"
+                                style="background: #444; color: #aaa; font-size: 0.7rem;">DESCONECTADO</span>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div
+                                style="text-align: right; padding: 5px 15px; background: rgba(255, 235, 59, 0.1); border: 1px solid rgba(255, 235, 59, 0.3); border-radius: 8px; display: flex; align-items: center; gap: 10px;">
+                                <div>
+                                    <span style="font-size: 0.8rem; color: #ffeb3b; display: block;">Balance
+                                        Futuros</span>
+                                    <span id="real-total-balance"
+                                        style="font-size: 1.2rem; font-weight: bold; color: #fff;">---</span>
+                                </div>
+                                <button onclick="fetchRealBalance()"
+                                    style="background: none; border: none; color: #ffeb3b; cursor: pointer; font-size: 1.2rem;"
+                                    title="Actualizar Saldo">↻</button>
+                            </div>
+                            <button class="btn-primary" onclick="stopAllRealBots()"
+                                style="background: var(--danger); color: white; min-width: auto; padding: 0.5rem 1rem;">Detener
+                                Todo</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="trades-table" style="margin-top: 0;">
+                            <thead>
+                                <tr>
+                                    <th>Par</th>
+                                    <th>TF</th>
+                                    <th>Estrategia</th>
+                                    <th>Tipo SL</th>
+                                    <th>Valor SL</th>
+                                    <th>Cap. Inicial</th>
+                                    <th>Balance</th>
+                                    <th>Posición</th>
+                                    <th>PnL Actual</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="realActiveBotsBody">
+                                <tr>
+                                    <td colspan="10"
+                                        style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay
+                                        monedas en seguimiento</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="table-container">
-                    <table class="trades-table" style="margin-top: 0;">
-                        <thead>
-                            <tr>
-                                <th>Par</th>
-                                <th>TF</th>
-                                <th>Estrategia</th>
-                                <th>Tipo SL</th>
-                                <th>Valor SL</th>
-                                <th>Cap. Inicial</th>
-                                <th>Balance</th>
-                                <th>Posición</th>
-                                <th>PnL Actual</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="realActiveBotsBody">
-                            <tr>
-                                <td colspan="10"
-                                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay
-                                    monedas en seguimiento</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
-            <div class="card" style="margin-top: 2rem;">
-                <h3>Historial de Trades (BOT 01)</h3>
-                <div class="table-container">
-                    <table class="trades-table" style="margin-top: 1rem;">
-                        <thead>
-                            <tr>
-                                <th>Hora Entrada</th>
-                                <th>Par</th>
-                                <th>Tipo</th>
-                                <th>Precio Ent.</th>
-                                <th>Precio Sal.</th>
-                                <th>Comisión</th>
-                                <th>Funding</th>
-                                <th>PnL (USDT)</th>
-                                <th>Motivo</th>
-                            </tr>
-                        </thead>
-                        <tbody id="realTradesBody">
-                            <tr>
-                                <td colspan="9"
-                                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">Esperando
-                                    primer trade...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="card" style="margin-top: 2rem;">
+                    <h3>Historial de Trades (BOT 01)</h3>
+                    <div class="table-container">
+                        <table class="trades-table" style="margin-top: 1rem;">
+                            <thead>
+                                <tr>
+                                    <th>Hora Entrada</th>
+                                    <th>Par</th>
+                                    <th>Tipo</th>
+                                    <th>Precio Ent.</th>
+                                    <th>Precio Sal.</th>
+                                    <th>Comisión</th>
+                                    <th>Funding</th>
+                                    <th>PnL (USDT)</th>
+                                    <th>Motivo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="realTradesBody">
+                                <tr>
+                                    <td colspan="9"
+                                        style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                        Esperando
+                                        primer trade...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Session History Table (Real) -->
-            <div class="card" style="margin-top: 2rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3>Historial de Sesiones Finalizadas (BOT 01)</h3>
-                    <button class="btn-primary" onclick="clearRealBotHistory()"
-                        style="background: #444; color: #aaa; min-width: auto; padding: 4px 8px; font-size: 0.7rem;">Limpiar
-                        Historial</button>
+                <!-- Session History Table (Real) -->
+                <div class="card" style="margin-top: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3>Historial de Sesiones Finalizadas (BOT 01)</h3>
+                        <button class="btn-primary" onclick="clearRealBotHistory()"
+                            style="background: #444; color: #aaa; min-width: auto; padding: 4px 8px; font-size: 0.7rem;">Limpiar
+                            Historial</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="trades-table" style="margin-top: 1rem;">
+                            <thead>
+                                <tr>
+                                    <th>Par</th>
+                                    <th>Estrategia</th>
+                                    <th>Tipo SL</th>
+                                    <th>Valor SL</th>
+                                    <th>Cap. Inicial</th>
+                                    <th>Balance Final</th>
+                                    <th>PnL Neto</th>
+                                    <th>Inicio</th>
+                                    <th>Fin</th>
+                                    <th>Duración</th>
+                                    <th>Trades</th>
+                                </tr>
+                            </thead>
+                            <tbody id="realHistoryBotsBody">
+                                <tr>
+                                    <td colspan="11"
+                                        style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                        No hay historial disponible</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="table-container">
-                    <table class="trades-table" style="margin-top: 1rem;">
-                        <thead>
-                            <tr>
-                                <th>Par</th>
-                                <th>Estrategia</th>
-                                <th>Tipo SL</th>
-                                <th>Valor SL</th>
-                                <th>Cap. Inicial</th>
-                                <th>Balance Final</th>
-                                <th>PnL Neto</th>
-                                <th>Inicio</th>
-                                <th>Fin</th>
-                                <th>Duración</th>
-                                <th>Trades</th>
-                            </tr>
-                        </thead>
-                        <tbody id="realHistoryBotsBody">
-                            <tr>
-                                <td colspan="11"
-                                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">
-                                    No hay historial disponible</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
-            <div id="real-results" style="margin-top: 2rem;">
-                <div class="card" style="border-left: 4px solid #ffeb3b;">
-                    <h3 id="real-status-text">📟 Consola de Eventos (BOT 01)</h3>
-                    <div id="real-log"
-                        style="font-family: monospace; font-size: 0.85rem; height: 200px; overflow-y: auto; margin-top: 1rem; color: #aaa; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
-                        <span style="color: #666;">Esperando eventos del bot...</span>
+                <div id="real-results" style="margin-top: 2rem;">
+                    <div class="card" style="border-left: 4px solid #ffeb3b;">
+                        <h3 id="real-status-text">📟 Consola de Eventos (BOT 01)</h3>
+                        <div id="real-log"
+                            style="font-family: monospace; font-size: 0.85rem; height: 200px; overflow-y: auto; margin-top: 1rem; color: #aaa; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
+                            <span style="color: #666;">Esperando eventos del bot...</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
+        </div> <!-- End Real Bot Content -->
         <!-- Tab: Información -->
         <div id="info-pane" class="tab-pane">
-            <div class="card">
-                <h2 style="margin-bottom: 2rem; color: var(--accent-primary);">Guía de Estrategias - HYDRA BOT</h2>
-
-                <div class="info-section" style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 2rem;">
-                    <h3
-                        style="color: var(--accent-primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                        <svg width="24" height="24" fill="var(--accent-primary)" viewBox="0 0 24 24">
-                            <path
-                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-                        </svg>
-                        Mecánica de Re-entrada (Spirit)
-                    </h3>
-                    <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
-                        A diferencia de las estrategias tradicionales que requieren un nuevo cruce de indicadores para
-                        entrar, las estrategias <strong>Spirit</strong> operan bajo el concepto de <strong>"Persistencia
-                            de Tendencia"</strong>.
-                    </p>
-                    <ul
-                        style="color: var(--text-secondary); line-height: 1.8; padding-left: 1.5rem; margin-bottom: 1.5rem;">
-                        <li><strong>Resurrección de Posición:</strong> Si el bot es sacado del mercado por un Stop Loss
-                            (mecha rápida, volatilidad momentánea) pero el indicador <em>Range Filter</em> aún mantiene
-                            la señal original, el bot abrirá la posición de nuevo inmediatamente.</li>
-                        <li><strong>Aprovechamiento de Tendencias:</strong> Evita perderse el movimiento principal
-                            después de un retroceso que toque el SL. El bot "confía" en que la tendencia sigue viva
-                            mientras el filtro no cambie de color.</li>
-                        <li><strong>Variantes:</strong>
-                            <br>&bull; <strong>Spirit (Base):</strong> Re-entra sin condiciones adicionales tras un SL.
-                            <br>&bull; <strong>Spirit Improved:</strong> Espera al inicio de la siguiente vela para
-                            evitar re-entrar en una caída libre continua.
-                            <br>&bull; <strong>Spirit Trailing:</strong> Específicamente optimizado para re-entrar
-                            incluso si la salida fue por un Trailing Stop ajustado.
-                        </li>
-                    </ul>
+            <!-- Login Overlay for Info -->
+            <div id="info-login" class="card" style="max-width: 400px; margin: 40px auto; text-align: center;">
+                <h2 style="color: var(--accent-primary); margin-bottom: 20px;">Acceso Protegido</h2>
+                <p style="color: #aaa; margin-bottom: 20px;">Ingrese la clave para ver la Guía de Estrategias</p>
+                <div class="form-group">
+                    <input type="password" id="info-password" placeholder="Contraseña..." style="text-align: center;">
                 </div>
+                <button class="btn-primary" onclick="checkInfoAuth()"
+                    style="width: 100%; margin-top: 10px; background: var(--accent-primary); color: white;">Desbloquear</button>
+                <p id="info-login-error" style="color: var(--danger); margin-top: 10px; display: none;">Contraseña
+                    incorrecta</p>
+            </div>
 
-                <div class="info-section" style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
-                    <h3 style="color: var(--success); margin-bottom: 1rem;">1. Entrada al Cierre (CLOSE_ENTRY)</h3>
-                    <p style="color: var(--text-secondary); line-height: 1.6;">
-                        Es la ejecución más conservadora. El bot espera a que la vela actual cierre completamente para
-                        confirmar la señal del <strong>Range Filter</strong>.
-                        Si al cierre la señal es alcista ("Buy"), entra en Long. Si es bajista ("Sell"), entra en Short.
-                        Evita falsos positivos de velas en formación.
-                    </p>
-                </div>
+            <!-- Protected Info Content -->
+            <div id="info-content" style="display: none;">
+                <div class="card">
+                    <h2 style="margin-bottom: 2rem; color: var(--accent-primary);">Guía de Estrategias - HYDRA BOT</h2>
 
-                <div class="info-section" style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
-                    <h3 style="color: var(--success); margin-bottom: 1rem;">2. Entrada en Apertura (OPEN_ENTRY)</h3>
-                    <p style="color: var(--text-secondary); line-height: 1.6;">
-                        Similar al cierre, pero la orden se ejecuta exactamente en el precio de apertura de la siguiente
-                        vela.
-                        Es útil para simular ejecuciones donde el slippage del cierre de vela es un factor importante.
-                    </p>
-                </div>
+                    <div class="info-section"
+                        style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 2rem;">
+                        <h3
+                            style="color: var(--accent-primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                            <svg width="24" height="24" fill="var(--accent-primary)" viewBox="0 0 24 24">
+                                <path
+                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+                            </svg>
+                            Mecánica de Re-entrada (Spirit)
+                        </h3>
+                        <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
+                            A diferencia de las estrategias tradicionales que requieren un nuevo cruce de indicadores
+                            para
+                            entrar, las estrategias <strong>Spirit</strong> operan bajo el concepto de
+                            <strong>"Persistencia
+                                de Tendencia"</strong>.
+                        </p>
+                        <ul
+                            style="color: var(--text-secondary); line-height: 1.8; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                            <li><strong>Resurrección de Posición:</strong> Si el bot es sacado del mercado por un Stop
+                                Loss
+                                (mecha rápida, volatilidad momentánea) pero el indicador <em>Range Filter</em> aún
+                                mantiene
+                                la señal original, el bot abrirá la posición de nuevo inmediatamente.</li>
+                            <li><strong>Aprovechamiento de Tendencias:</strong> Evita perderse el movimiento principal
+                                después de un retroceso que toque el SL. El bot "confía" en que la tendencia sigue viva
+                                mientras el filtro no cambie de color.</li>
+                            <li><strong>Variantes:</strong>
+                                <br>&bull; <strong>Spirit (Base):</strong> Re-entra sin condiciones adicionales tras un
+                                SL.
+                                <br>&bull; <strong>Spirit Improved:</strong> Espera al inicio de la siguiente vela para
+                                evitar re-entrar en una caída libre continua.
+                                <br>&bull; <strong>Spirit Trailing:</strong> Específicamente optimizado para re-entrar
+                                incluso si la salida fue por un Trailing Stop ajustado.
+                            </li>
+                        </ul>
+                    </div>
 
-                <div class="info-section" style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
-                    <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">3. Estrategia Spirit (SPIRIT)</h3>
-                    <p style="color: var(--text-secondary); line-height: 1.6;">
-                        Diseñada para mercados con tendencia fuerte. Permite <strong>re-entradas diferidas</strong>.
-                        Si una posición se cierra por Stop Loss pero la señal del Range Filter sigue activa, el bot
-                        esperará
-                        a la entrada de la <strong>siguiente vela</strong> para re-abrir la posición al **mismo precio**
-                        que
-                        activó el Stop Loss.
-                        Evita el ruido de la vela que genera la salida y maximiza la captura de tendencias.
-                    </p>
-                </div>
+                    <div class="info-section"
+                        style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
+                        <h3 style="color: var(--success); margin-bottom: 1rem;">1. Entrada al Cierre (CLOSE_ENTRY)</h3>
+                        <p style="color: var(--text-secondary); line-height: 1.6;">
+                            Es la ejecución más conservadora. El bot espera a que la vela actual cierre completamente
+                            para
+                            confirmar la señal del <strong>Range Filter</strong>.
+                            Si al cierre la señal es alcista ("Buy"), entra en Long. Si es bajista ("Sell"), entra en
+                            Short.
+                            Evita falsos positivos de velas en formación.
+                        </p>
+                    </div>
 
-                <div class="info-section" style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
-                    <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">4. Spirit Mejorado (SPIRIT_IMPROVED)
-                    </h3>
-                    <p style="color: var(--text-secondary); line-height: 1.6;">
-                        Evolución de Spirit con filtros de seguridad adicionales. La re-entrada es similar a Spirit pero
-                        se ejecuta al precio de mercado (**Market**) al inicio de la vela posterior si la tendencia
-                        persiste.
-                        Mantiene la agresividad de Spirit pero con una entrada más confirmada.
-                    </p>
-                </div>
+                    <div class="info-section"
+                        style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
+                        <h3 style="color: var(--success); margin-bottom: 1rem;">2. Entrada en Apertura (OPEN_ENTRY)</h3>
+                        <p style="color: var(--text-secondary); line-height: 1.6;">
+                            Similar al cierre, pero la orden se ejecuta exactamente en el precio de apertura de la
+                            siguiente
+                            vela.
+                            Es útil para simular ejecuciones donde el slippage del cierre de vela es un factor
+                            importante.
+                        </p>
+                    </div>
 
-                <div class="info-section" style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
-                    <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">5. Spirit Trailing (SPIRIT_TRAILING)
-                    </h3>
-                    <p style="color: var(--text-secondary); line-height: 1.6;">
-                        La variante más avanzada. Combina la lógica de re-entrada de Spirit con una gestión de
-                        <strong>Trailing Stop</strong> dinámica.
-                        Permite que el bot re-entre incluso si la última salida fue por un Trailing Stop, siempre y
-                        cuando la tendencia (Range Filter) no haya revertido.
-                        Ideal para capturar grandes movimientos con stops que protegen las ganancias.
-                    </p>
-                </div>
+                    <div class="info-section"
+                        style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
+                        <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">3. Estrategia Spirit (SPIRIT)
+                        </h3>
+                        <p style="color: var(--text-secondary); line-height: 1.6;">
+                            Diseñada para mercados con tendencia fuerte. Permite <strong>re-entradas diferidas</strong>.
+                            Si una posición se cierra por Stop Loss pero la señal del Range Filter sigue activa, el bot
+                            esperará
+                            a la entrada de la <strong>siguiente vela</strong> para re-abrir la posición al **mismo
+                            precio**
+                            que
+                            activó el Stop Loss.
+                            Evita el ruido de la vela que genera la salida y maximiza la captura de tendencias.
+                        </p>
+                    </div>
 
-                <div class="info-section" style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
-                    <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">6. Spirit Experimental
-                        (SPIRIT_EXPERIMENTAL)</h3>
-                    <p style="color: var(--text-secondary); line-height: 1.6;">
-                        Una variante única diseñada para dar "respiro" al trade.
-                        <strong>Lógica:</strong> No aplica ningún Stop Loss en el momento de la entrada. El bot espera a
-                        que cierre la vela <em>inmediatamente posterior</em> a la de entrada (Entrada + 1). El precio de
-                        cierre de esa vela se convierte automáticamente en el Stop Loss definitivo para el resto de la
-                        operación.
-                    </p>
-                </div>
+                    <div class="info-section"
+                        style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
+                        <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">4. Spirit Mejorado
+                            (SPIRIT_IMPROVED)
+                        </h3>
+                        <p style="color: var(--text-secondary); line-height: 1.6;">
+                            Evolución de Spirit con filtros de seguridad adicionales. La re-entrada es similar a Spirit
+                            pero
+                            se ejecuta al precio de mercado (**Market**) al inicio de la vela posterior si la tendencia
+                            persiste.
+                            Mantiene la agresividad de Spirit pero con una entrada más confirmada.
+                        </p>
+                    </div>
 
-                <div class="alert-box"
-                    style="background: rgba(94, 106, 210, 0.1); border: 1px solid var(--accent-primary); padding: 1.5rem; border-radius: 8px;">
-                    <h4 style="margin-top: 0; color: var(--accent-primary);">💡 Consejo Pro</h4>
-                    <p style="margin-bottom: 0; font-size: 0.9rem; color: var(--text-secondary);">
-                        Para scalping en temporalidades bajas (1m, 5m), las estrategias de la familia
-                        <strong>Spirit</strong> suelen capturar mejor los impulsos volátiles, mientras que
-                        <strong>CLOSE_ENTRY</strong> es preferible para swings en 15m o 1h.
-                    </p>
+                    <div class="info-section"
+                        style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
+                        <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">5. Spirit Trailing
+                            (SPIRIT_TRAILING)
+                        </h3>
+                        <p style="color: var(--text-secondary); line-height: 1.6;">
+                            La variante más avanzada. Combina la lógica de re-entrada de Spirit con una gestión de
+                            <strong>Trailing Stop</strong> dinámica.
+                            Permite que el bot re-entre incluso si la última salida fue por un Trailing Stop, siempre y
+                            cuando la tendencia (Range Filter) no haya revertido.
+                            Ideal para capturar grandes movimientos con stops que protegen las ganancias.
+                        </p>
+                    </div>
+
+                    <div class="info-section"
+                        style="margin-bottom: 2rem; border-top: 1px solid #333; padding-top: 1rem;">
+                        <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">6. Spirit Experimental
+                            (SPIRIT_EXPERIMENTAL)</h3>
+                        <p style="color: var(--text-secondary); line-height: 1.6;">
+                            Una variante única diseñada para dar "respiro" al trade.
+                            <strong>Lógica:</strong> No aplica ningún Stop Loss en el momento de la entrada. El bot
+                            espera a
+                            que cierre la vela <em>inmediatamente posterior</em> a la de entrada (Entrada + 1). El
+                            precio de
+                            cierre de esa vela se convierte automáticamente en el Stop Loss definitivo para el resto de
+                            la
+                            operación.
+                        </p>
+                    </div>
+
+                    <div class="alert-box"
+                        style="background: rgba(94, 106, 210, 0.1); border: 1px solid var(--accent-primary); padding: 1.5rem; border-radius: 8px;">
+                        <h4 style="margin-top: 0; color: var(--accent-primary);">💡 Consejo Pro</h4>
+                        <p style="margin-bottom: 0; font-size: 0.9rem; color: var(--text-secondary);">
+                            Para scalping en temporalidades bajas (1m, 5m), las estrategias de la familia
+                            <strong>Spirit</strong> suelen capturar mejor los impulsos volátiles, mientras que
+                            <strong>CLOSE_ENTRY</strong> es preferible para swings en 15m o 1h.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
 
     </div>
 
+    </div>
+
+    <script src="auth.js"></script>
     <script src="app.js"></script>
 </body>
 

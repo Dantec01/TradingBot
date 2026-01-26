@@ -174,5 +174,37 @@
     "endTime": 1769416780357,
     "duration": "20h 35m",
     "totalTrades": 232
+  },
+  {
+    "id": "1769444474635zstum",
+    "symbol": "ROSE",
+    "timeframe": "5m",
+    "strategy": "SPIRIT_ELITE",
+    "slMode": "NONE",
+    "stopLossPct": 1,
+    "mode": "PAPER",
+    "initialCapital": 100,
+    "finalBalance": 100,
+    "pnl": 0,
+    "startTime": 1769444303405,
+    "endTime": 1769444474635,
+    "duration": "0h 2m",
+    "totalTrades": 0
+  },
+  {
+    "id": "17694489812892bq2b",
+    "symbol": "ROSE",
+    "timeframe": "5m",
+    "strategy": "SPIRIT_ELITE",
+    "slMode": "NONE",
+    "stopLossPct": 1,
+    "mode": "PAPER",
+    "initialCapital": 100,
+    "finalBalance": 100,
+    "pnl": 0,
+    "startTime": 1769445194389,
+    "endTime": 1769448981289,
+    "duration": "1h 3m",
+    "totalTrades": 0
   }
 ]

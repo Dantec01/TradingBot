@@ -1270,7 +1270,7 @@ async function refreshRealActiveBots() {
                 <td>${posBadge}</td>
                 <td>${bot.roi.toFixed(2)}%</td>
                 <td>
-                    <button class="btn-primary" onclick="stopRealBot('${bot.symbol}')" style="background: var(--danger); min-width: auto; font-size: 0.7rem; padding: 4px 8px;">Detener</button>
+                    <button type="button" class="btn-primary" onclick="stopRealBot('${bot.symbol}')" style="background: var(--danger); min-width: auto; font-size: 0.7rem; padding: 4px 8px;">Detener</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -1420,34 +1420,7 @@ async function fetchRealBalance() {
     }
 }
 
-// --- REAL BOT LOG HELPER ---
-function updateRealBotLog(logs) {
-    if (!logs) return;
 
-    const logContainer = document.getElementById('real-log');
-    if (!logContainer) return;
-
-    // Clear and rebuild (simple approach for <= 50 items)
-    let html = '';
-    logs.forEach(log => {
-        let color = '#aaa';
-        if (log.level === 'ERROR') color = '#ff1744';
-        else if (log.level === 'WARN') color = '#ffab00';
-        else if (log.level === 'SUCCESS') color = '#00e676';
-
-        const time = new Date(log.time).toLocaleTimeString();
-        html += `<div style="color: ${color}; margin-bottom: 4px;">
-            <span style="opacity:0.6">[${time}]</span> ${log.message}
-        </div>`;
-    });
-
-    logContainer.innerHTML = html;
-}
-
-function logRealBotEvent(msg) {
-    // Legacy frontend logger fallback
-    console.log(msg);
-}
 
 async function refreshBotHistory() {
     try {
@@ -1605,9 +1578,17 @@ function setupSpiritShieldLock() {
     // 2. Live Bot (Paper)
     const liveStrat = document.getElementById('live-strategy');
     if (liveStrat) {
-        liveStrat.addEventListener('change', () => {
-            toggleSLFields('live-', liveStrat.value === 'SPIRIT_SHIELD');
-        });
+        if (liveStrat) {
+            liveStrat.addEventListener('change', () => {
+                toggleSLFields('live-', liveStrat.value === 'SPIRIT_SHIELD' || liveStrat.value === 'SPIRIT_ELITE');
+
+                // Show/hide elite config for Paper (Live) Bot
+                const liveEliteConfig = document.getElementById('live-eliteConfig');
+                if (liveEliteConfig) {
+                    liveEliteConfig.style.display = liveStrat.value === 'SPIRIT_ELITE' ? 'block' : 'none';
+                }
+            });
+        }
     }
 
     // 3. Real Bot
@@ -1620,7 +1601,13 @@ function setupSpiritShieldLock() {
 
     if (realStrat) {
         realStrat.addEventListener('change', () => {
-            toggleSLFields('real-', realStrat.value === 'SPIRIT_SHIELD');
+            toggleSLFields('real-', realStrat.value === 'SPIRIT_SHIELD' || realStrat.value === 'SPIRIT_ELITE');
+
+            // Show/hide elite config for Real Bot
+            const realEliteConfig = document.getElementById('real-eliteConfig');
+            if (realEliteConfig) {
+                realEliteConfig.style.display = realStrat.value === 'SPIRIT_ELITE' ? 'block' : 'none';
+            }
         });
     }
 }
