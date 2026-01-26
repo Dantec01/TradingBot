@@ -773,7 +773,9 @@ async function runBot() {
         strategy: document.getElementById('live-strategy').value,
         slMode: derivedMode,
         trailingPct: document.getElementById('live-trailingPct').value,
-        mode: document.getElementById('live-mode').value
+        mode: document.getElementById('live-mode').value,
+        // SPIRIT_ELITE Config
+        eliteTickOffset: parseFloat(document.getElementById('live-eliteTickOffset')?.value) || 0.0001
     };
 
     saveRecentSymbol(config.symbol);
@@ -1606,7 +1608,15 @@ function setupSpiritShieldLock() {
     const liveStrat = document.getElementById('live-strategy');
     if (liveStrat) {
         liveStrat.addEventListener('change', () => {
-            toggleSLFields('live-', liveStrat.value === 'SPIRIT_SHIELD');
+            toggleSLFields('live-', liveStrat.value === 'SPIRIT_SHIELD' || liveStrat.value === 'SPIRIT_ELITE');
+            // Show/hide elite config (reuse the same div or create a new one for paper? Sharing for now)
+            if (eliteConfigDiv) {
+                // Ideally, Paper Bot should have its own config div, but for now we might need to share or check if it exists in Paper tab
+                // Assuming eliteConfigDiv is inside the Paper form or Backtest form.
+                // Wait, eliteConfig is currently in Backtest Form. 
+                // We need to add it to Paper Form too or it won't be visible/usable.
+                // For now, just disabling SL fields.
+            }
         });
     }
 

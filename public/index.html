@@ -399,6 +399,8 @@
                                 <option value="SPIRIT_TRAILING">Spirit Trailing</option>
                                 <option value="SPIRIT_EXPERIMENTAL">Spirit Experimental</option>
                                 <option value="SPIRIT_EXPERIMENTAL_FIXED">Spirit Exp. Fixed (+500ms)</option>
+                                <option value="SPIRIT_SHIELD">Spirit Shield (Smart Breakeven)</option>
+                                <option value="SPIRIT_ELITE">Spirit Elite (Limit + Hybrid SL)</option>
                                 <option value="BACKGUARD">BACKGUARD (Limit + Delayed Trailing)</option>
                                 <option value="VANGUARD">VANGUARD (Multi-TF 5m/1m)</option>
                             </select>
@@ -406,6 +408,18 @@
                                 style="display: none; color: var(--accent-secondary); margin-top: 5px;">
                                 <i class="fas fa-info-circle"></i> VANGUARD bloquea la temporalidad a 5m.
                             </small>
+                        </div>
+
+                        <!-- SPIRIT_ELITE Config for Paper Bot -->
+                        <div id="live-eliteConfig" class="form-group" style="grid-column: span 2; display: none;">
+                            <label>Configuración Spirit Elite</label>
+                            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <label for="live-eliteTickOffset" style="width: auto; font-size: 0.85rem;">Tick Offset:</label>
+                                    <input type="number" id="live-eliteTickOffset" value="0.0001" step="0.0001" style="width: 90px;">
+                                    <span style="font-size: 0.75rem; color: #888;">(puntos)</span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group">

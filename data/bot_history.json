@@ -158,5 +158,21 @@
     "endTime": 1769396584851,
     "duration": "0h 0m",
     "totalTrades": 0
+  },
+  {
+    "id": "17694167803584qas8",
+    "symbol": "STO",
+    "timeframe": "5m",
+    "strategy": "SPIRIT_EXPERIMENTAL",
+    "slMode": "BREAKEVEN",
+    "stopLossPct": 1,
+    "mode": "PAPER",
+    "initialCapital": 105,
+    "finalBalance": 748.7601281319971,
+    "pnl": 643.7601281319971,
+    "startTime": 1769342677318,
+    "endTime": 1769416780357,
+    "duration": "20h 35m",
+    "totalTrades": 232
   }
 ]
