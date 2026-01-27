@@ -1,3 +1,134 @@
 {
-  "bots": []
+  "bots": [
+    {
+      "config": {
+        "symbol": "HYPE",
+        "timeframe": "5m",
+        "initialCapital": 100,
+        "orderSize": 10,
+        "leverage": 20,
+        "strategy": "SPIRIT_ELITE",
+        "slMode": "NONE",
+        "stopLossPct": 1,
+        "trailingPct": 1,
+        "direction": "BOTH",
+        "mode": "PAPER"
+      },
+      "state": {
+        "balance": 100,
+        "trades": [],
+        "position": null,
+        "pendingReEntry": null,
+        "startTime": 1769490345888
+      }
+    },
+    {
+      "config": {
+        "symbol": "DUSK",
+        "timeframe": "5m",
+        "initialCapital": 100,
+        "orderSize": 10,
+        "leverage": 20,
+        "strategy": "SPIRIT_ELITE",
+        "slMode": "NONE",
+        "stopLossPct": 1,
+        "trailingPct": 1,
+        "direction": "BOTH",
+        "mode": "PAPER"
+      },
+      "state": {
+        "balance": 100,
+        "trades": [],
+        "position": null,
+        "pendingReEntry": null,
+        "startTime": 1769490360589
+      }
+    },
+    {
+      "config": {
+        "symbol": "ALCH",
+        "timeframe": "5m",
+        "initialCapital": 100,
+        "orderSize": 10,
+        "leverage": 20,
+        "strategy": "SPIRIT_ELITE",
+        "slMode": "NONE",
+        "stopLossPct": 1,
+        "trailingPct": 1,
+        "direction": "BOTH",
+        "mode": "PAPER"
+      },
+      "state": {
+        "balance": 85.6785898615779,
+        "trades": [
+          {
+            "type": "SHORT",
+            "entryPrice": 0.10582,
+            "margin": 10,
+            "size": 1890.0018900018902,
+            "entryTime": 1769491800899,
+            "entryCandleTime": 1769491500000,
+            "highestPrice": 0.10582,
+            "lowestPrice": 0.10582,
+            "entryCommission": 0.005999999999999999,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769491800899,
+            "backguardSL": null,
+            "candlesSinceEntry": 0,
+            "lastCandleTime": 1769491500000,
+            "eliteSLType": "None",
+            "exitPrice": 0.10733,
+            "exitTime": 1769492401522,
+            "pnl": -2.865902853902849,
+            "commission": 0.011999999999999999,
+            "funding": 0,
+            "reason": "Signal Reversal",
+            "roi": -28.65902853902849
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.10639,
+            "margin": 10,
+            "size": 1879.8759281887396,
+            "entryTime": 1769493300951,
+            "entryCandleTime": 1769493000000,
+            "highestPrice": 0.10639,
+            "lowestPrice": 0.106,
+            "entryCommission": 0.005999999999999999,
+            "accumulatedFunding": -0.009997180186107717,
+            "lastFundingCheck": 1769500800000,
+            "backguardSL": null,
+            "candlesSinceEntry": 0,
+            "lastCandleTime": 1769493000000,
+            "eliteSLType": "None",
+            "exitPrice": 0.10716,
+            "exitTime": 1769502600999,
+            "pnl": -1.4495072845192347,
+            "commission": 0.011999999999999999,
+            "funding": -0.009997180186107717,
+            "reason": "Signal Reversal",
+            "roi": -14.495072845192347
+          }
+        ],
+        "position": {
+          "type": "SHORT",
+          "entryPrice": 0.10628,
+          "margin": 10,
+          "size": 1881.8216033120061,
+          "entryTime": 1769502900509,
+          "entryCandleTime": 1769502600000,
+          "highestPrice": 0.10628,
+          "lowestPrice": 0.10628,
+          "entryCommission": 0.005999999999999999,
+          "accumulatedFunding": 0,
+          "lastFundingCheck": 1769502900509,
+          "backguardSL": null,
+          "candlesSinceEntry": 0,
+          "lastCandleTime": 1769502600000
+        },
+        "pendingReEntry": null,
+        "startTime": 1769491667113
+      }
+    }
+  ]
 }

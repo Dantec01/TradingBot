@@ -97,6 +97,7 @@ function switchTab(tabId) {
 // Init
 document.addEventListener('DOMContentLoaded', () => {
     setupVanguardLock();
+    setupSpiritShieldLock();
 
     loadPersistedData();
     loadSymbols();
@@ -374,7 +375,8 @@ async function runBacktest() {
         takerFee: document.getElementById('takerFee').value,
         // SPIRIT_ELITE Config
         eliteActivationPct: (parseFloat(document.getElementById('eliteActivationPct')?.value) || 0.2) / 100, // Convert % to decimal
-        eliteTickOffset: parseFloat(document.getElementById('eliteTickOffset')?.value) || 0.0001
+        eliteTickOffset: parseFloat(document.getElementById('eliteTickOffset')?.value) || 0.0001,
+        eliteTrailingDefer: parseFloat(document.getElementById('eliteTrailingDefer')?.value) || 5
     };
 
     // Save symbol to recent list
@@ -773,7 +775,11 @@ async function runBot() {
         strategy: document.getElementById('live-strategy').value,
         slMode: derivedMode,
         trailingPct: document.getElementById('live-trailingPct').value,
-        mode: document.getElementById('live-mode').value
+        mode: document.getElementById('live-mode').value,
+        // SPIRIT_ELITE Config
+        eliteActivationPct: (parseFloat(document.getElementById('live-eliteActivationPct')?.value) || 0.2) / 100,
+        eliteTickOffset: parseFloat(document.getElementById('live-eliteTickOffset')?.value) || 0.0001,
+        eliteTrailingDefer: parseFloat(document.getElementById('live-eliteTrailingDefer')?.value) || 5
     };
 
     saveRecentSymbol(config.symbol);
@@ -1144,7 +1150,11 @@ async function runRealBot() {
         strategy: document.getElementById('real-strategy').value,
         slMode: derivedMode,
         trailingPct: document.getElementById('real-trailingPct').value,
-        mode: document.getElementById('real-mode').value
+        mode: document.getElementById('real-mode').value,
+        // SPIRIT_ELITE Config
+        eliteActivationPct: (parseFloat(document.getElementById('real-eliteActivationPct')?.value) || 0.2) / 100,
+        eliteTickOffset: parseFloat(document.getElementById('real-eliteTickOffset')?.value) || 0.0001,
+        eliteTrailingDefer: parseFloat(document.getElementById('real-eliteTrailingDefer')?.value) || 5
     };
 
     saveRecentSymbol(config.symbol);
@@ -1578,46 +1588,34 @@ function setupSpiritShieldLock() {
     // 2. Live Bot (Paper)
     const liveStrat = document.getElementById('live-strategy');
     if (liveStrat) {
-        if (liveStrat) {
-            liveStrat.addEventListener('change', () => {
-                toggleSLFields('live-', liveStrat.value === 'SPIRIT_SHIELD' || liveStrat.value === 'SPIRIT_ELITE');
+        liveStrat.addEventListener('change', () => {
+            toggleSLFields('live-', liveStrat.value === 'SPIRIT_SHIELD' || liveStrat.value === 'SPIRIT_ELITE');
 
-                // Show/hide elite config for Paper (Live) Bot
-                const liveEliteConfig = document.getElementById('live-eliteConfig');
-                if (liveEliteConfig) {
-                    liveEliteConfig.style.display = liveStrat.value === 'SPIRIT_ELITE' ? 'block' : 'none';
-                }
-            });
-        }
+            // Show/hide elite config for Paper (Live) Bot
+            const liveEliteConfig = document.getElementById('live-eliteConfig');
+            if (liveEliteConfig) {
+                liveEliteConfig.style.display = liveStrat.value === 'SPIRIT_ELITE' ? 'block' : 'none';
+            }
+        });
     }
 
     // 3. Real Bot
-    const selects = document.querySelectorAll('#realBotForm select');
-    let realStrat = null;
-    selects.forEach(s => {
-        // Look for the strategy dropdown by finding one that has 'VANGUARD' or 'SPIRIT' options
-        if (s.querySelector('option[value="VANGUARD"]')) realStrat = s;
-    });
-
-    if (realStrat) {
-        realStrat.addEventListener('change', () => {
-            toggleSLFields('real-', realStrat.value === 'SPIRIT_SHIELD' || realStrat.value === 'SPIRIT_ELITE');
+    const realStratSelect = document.getElementById('real-strategy');
+    if (realStratSelect) {
+        realStratSelect.addEventListener('change', () => {
+            const isEliteOrShield = realStratSelect.value === 'SPIRIT_SHIELD' || realStratSelect.value === 'SPIRIT_ELITE';
+            toggleSLFields('real-', isEliteOrShield);
 
             // Show/hide elite config for Real Bot
             const realEliteConfig = document.getElementById('real-eliteConfig');
             if (realEliteConfig) {
-                realEliteConfig.style.display = realStrat.value === 'SPIRIT_ELITE' ? 'block' : 'none';
+                realEliteConfig.style.display = realStratSelect.value === 'SPIRIT_ELITE' ? 'block' : 'none';
             }
         });
     }
 }
 
-// Init Locks
-document.addEventListener('DOMContentLoaded', () => {
-    setupVanguardLock();
-    setupSpiritShieldLock();
-    refreshBotHistory();
-});
+// Init Locks (Consolidated in main DOMContentLoaded)
 
 async function clearBotHistory() {
     if (!confirm("¿Borrar todo el historial de sesiones finalizadas?")) return;

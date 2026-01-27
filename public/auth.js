@@ -53,7 +53,7 @@ function checkInfoAuth() {
     const errorMsg = document.getElementById('info-login-error');
 
     // Same password for now
-    const PASS = "admin369";
+    const PASS = "q2w3e4r5";
 
     if (passwordInput.value === PASS) {
         // Success
