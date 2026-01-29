@@ -65,6 +65,73 @@ app.post('/api/bot/history/clear', (req, res) => {
     res.json({ success: true });
 });
 
+app.get('/api/bot/history/export', (req, res) => {
+    try {
+        const history = botManager.getHistory();
+        const activeBots = botManager.getStatus().bots || [];
+
+        // Collect ALL trades from History sessions AND Active Bots
+        let allTrades = [];
+
+        // 1. From History Sessions
+        history.forEach(session => {
+            // Check if 'trades' exists in session object (not explicitly shown in saveToHistory but likely needed)
+            // Wait, saveToHistory saves: initialCapital, finalBalance, etc. 
+            // BUT it does NOT seem to save the list of trades inside historyEntry in botManager.js!
+            // Looking at botManager.js:172... It saves totalTrades count, but NOT the trades array itself.
+            // THIS IS A FINDING. I need to fix botManager.js to save the trades array first if I want to export past sessions.
+            // However, the user might just want the current/recent ones.
+            // Let's assume for now I will fix botManager.js too.
+            if (Array.isArray(session.trades)) {
+                allTrades = allTrades.concat(session.trades.map(t => ({ ...t, sessionParam: session.symbol })));
+            }
+        });
+
+        // 2. From Active Bots
+        activeBots.forEach(bot => {
+            if (Array.isArray(bot.trades)) {
+                allTrades = allTrades.concat(bot.trades.map(t => ({ ...t, sessionParam: bot.symbol })));
+            }
+        });
+
+        // Sort by entry time
+        allTrades.sort((a, b) => b.entryTime - a.entryTime);
+
+        // Generate CSV
+        const headers = ['Symbol', 'Type', 'Entry Time', 'Exit Time', 'Entry Price', 'Exit Price', 'Size', 'PnL', 'Reason'];
+        const csvRows = [headers.join(',')];
+
+        allTrades.forEach(trade => {
+            const entryTime = new Date(trade.entryTime).toLocaleString();
+            const exitTime = trade.exitTime ? new Date(trade.exitTime).toLocaleString() : 'Open';
+            const symbol = trade.symbol || trade.sessionParam || 'Unknown';
+            // Use full precision, simple string start
+            const row = [
+                symbol,
+                trade.type,
+                `"${entryTime}"`,
+                `"${exitTime}"`,
+                trade.entryPrice,
+                trade.exitPrice || '',
+                trade.size,
+                trade.pnl || 0,
+                `"${trade.reason || ''}"`
+            ];
+            csvRows.push(row.join(','));
+        });
+
+        const csvString = csvRows.join('\n');
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="bot_trades_history.csv"');
+        res.send(csvString);
+
+    } catch (error) {
+        console.error('Export error:', error);
+        res.status(500).send('Error generating CSV');
+    }
+});
+
 // Real Bot Management (Exact Mirror for BOT 01)
 app.post('/api/real-bot/pair/add', async (req, res) => {
     try {

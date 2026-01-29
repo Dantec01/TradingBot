@@ -1627,6 +1627,11 @@ async function clearBotHistory() {
     }
 }
 
+function exportBotHistory() {
+    // Trigger download via direct navigation or hidden iframe (standard for file downloads)
+    window.location.href = '/api/bot/history/export';
+}
+
 function logBotEvent(msg) {
     const log = document.getElementById('live-log');
     const resDiv = document.getElementById('live-results');

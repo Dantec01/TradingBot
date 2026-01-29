@@ -509,7 +509,13 @@
 
             <!-- Live Session Trades -->
             <div class="card" style="margin-top: 2rem;">
-                <h3>Historial de Trades (Sesión Actual)</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>Historial de Trades (Sesión Actual)</h3>
+                    <button class="btn-primary" onclick="exportBotHistory()"
+                        style="background: var(--accent-secondary); color: white; min-width: auto; padding: 4px 12px; font-size: 0.75rem;">
+                        📥 Exportar CSV
+                    </button>
+                </div>
                 <div class="table-container">
                     <table class="trades-table" style="margin-top: 1rem;">
                         <thead>
@@ -550,9 +556,15 @@
             <div class="card" style="margin-top: 2rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3>Historial de Sesiones Finalizadas</h3>
-                    <button class="btn-primary" onclick="clearBotHistory()"
-                        style="background: #444; color: #aaa; min-width: auto; padding: 4px 8px; font-size: 0.7rem;">Limpiar
-                        Historial</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-primary" onclick="exportBotHistory()"
+                            style="background: var(--accent-secondary); color: white; min-width: auto; padding: 4px 12px; font-size: 0.75rem;">
+                            📥 Exportar CSV
+                        </button>
+                        <button class="btn-primary" onclick="clearBotHistory()"
+                            style="background: #444; color: #aaa; min-width: auto; padding: 4px 8px; font-size: 0.7rem;">Limpiar
+                            Historial</button>
+                    </div>
                 </div>
                 <div class="table-container">
                     <table class="trades-table" style="margin-top: 1rem;">
