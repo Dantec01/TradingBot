@@ -1,3 +1,26 @@
 {
-  "bots": []
+  "bots": [
+    {
+      "config": {
+        "symbol": "ALCH",
+        "timeframe": "5m",
+        "initialCapital": 100,
+        "orderSize": 10,
+        "leverage": 20,
+        "strategy": "SPIRIT_TRAILING",
+        "slMode": "TRAILING",
+        "stopLossPct": 1,
+        "trailingPct": -0.4,
+        "direction": "BOTH",
+        "mode": "PAPER"
+      },
+      "state": {
+        "balance": 100,
+        "trades": [],
+        "position": null,
+        "pendingReEntry": null,
+        "startTime": 1769829534040
+      }
+    }
+  ]
 }

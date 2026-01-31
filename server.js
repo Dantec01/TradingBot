@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-
+const { execSync } = require('child_process');
 const path = require('path');
 const cors = require('cors');
 const backtestEngine = require('./lib/backtest');
@@ -176,6 +176,17 @@ app.get('/api/real-bot/balance', async (req, res) => {
 app.post('/api/real-bot/history/clear', (req, res) => {
     realBotManager.clearHistory();
     res.json({ success: true });
+});
+
+// Version endpoint - returns git commit hash
+app.get('/api/version', (req, res) => {
+    try {
+        const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
+        const commitDate = execSync('git log -1 --format=%cd --date=short').toString().trim();
+        res.json({ commit: commitHash, date: commitDate });
+    } catch (err) {
+        res.json({ commit: 'unknown', date: '' });
+    }
 });
 
 app.listen(PORT, () => {

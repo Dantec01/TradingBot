@@ -128,7 +128,25 @@ document.addEventListener('DOMContentLoaded', () => {
             CASHIER_SOUND.currentTime = 0;
         }).catch(() => { });
     }, { once: true });
+
+    // Load version info
+    loadVersion();
 });
+
+// Fetch and display version info
+async function loadVersion() {
+    try {
+        const res = await fetch('/api/version');
+        const data = await res.json();
+        const versionEl = document.getElementById('app-version');
+        if (versionEl && data.commit) {
+            versionEl.innerText = `HYDRA Trading Bot v${data.commit} (${data.date})`;
+        }
+    } catch (e) {
+        const versionEl = document.getElementById('app-version');
+        if (versionEl) versionEl.innerText = 'HYDRA Trading Bot';
+    }
+}
 
 // Setup clear button for symbol input
 function setupClearButton() {
@@ -1577,10 +1595,10 @@ function setupSpiritShieldLock() {
 
     if (btStrat) {
         btStrat.addEventListener('change', () => {
-            toggleSLFields('', btStrat.value === 'SPIRIT_SHIELD' || btStrat.value === 'SPIRIT_ELITE');
+            toggleSLFields('', btStrat.value === 'SPIRIT_SHIELD' || btStrat.value === 'SPIRIT_ELITE' || btStrat.value === 'SPIRIT_TEST');
             // Show/hide elite config
             if (eliteConfigDiv) {
-                eliteConfigDiv.style.display = btStrat.value === 'SPIRIT_ELITE' ? 'block' : 'none';
+                eliteConfigDiv.style.display = (btStrat.value === 'SPIRIT_ELITE' || btStrat.value === 'SPIRIT_TEST') ? 'block' : 'none';
             }
         });
     }
