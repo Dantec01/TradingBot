@@ -1145,6 +1145,13 @@ function logRealBotEvent(message) {
     }
 }
 
+function clearRealBotLogs() {
+    const logContainer = document.getElementById('real-log');
+    if (logContainer) {
+        logContainer.innerHTML = '<span style="color: #666;">Logs limpiados. Esperando nuevos eventos...</span>';
+    }
+}
+
 // ========================================
 
 async function runRealBot() {

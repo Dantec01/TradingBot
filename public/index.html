@@ -895,9 +895,14 @@
 
                 <div id="real-results" style="margin-top: 2rem;">
                     <div class="card" style="border-left: 4px solid #ffeb3b;">
-                        <h3 id="real-status-text">📟 Consola de Eventos (BOT 01)</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 id="real-status-text" style="margin: 0;">📟 Consola de Eventos (BOT 01)</h3>
+                            <button class="btn-primary" onclick="clearRealBotLogs()"
+                                style="background: #444; color: #aaa; min-width: auto; padding: 4px 8px; font-size: 0.7rem;">Limpiar
+                                Logs</button>
+                        </div>
                         <div id="real-log"
-                            style="font-family: monospace; font-size: 0.85rem; height: 200px; overflow-y: auto; margin-top: 1rem; color: #aaa; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
+                            style="font-family: monospace; font-size: 0.85rem; height: 400px; overflow-y: auto; margin-top: 1rem; color: #aaa; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
                             <span style="color: #666;">Esperando eventos del bot...</span>
                         </div>
                     </div>

@@ -15,7 +15,7 @@
         "mode": "PAPER"
       },
       "state": {
-        "balance": 158.63361588280478,
+        "balance": 159.44435301326934,
         "trades": [
           {
             "type": "LONG",
@@ -867,12 +867,35 @@
             "funding": 0,
             "reason": "Trailing Stop",
             "roi": 7.880000000000155
+          },
+          {
+            "type": "SHORT",
+            "entryPrice": 0.08761,
+            "margin": 10,
+            "size": 2282.844424152494,
+            "entryTime": 1769874300000,
+            "entryCandleTime": 1769874300000,
+            "highestPrice": 0.08761,
+            "lowestPrice": 0.0876,
+            "entryCommission": 0.005999999999999999,
+            "accumulatedFunding": 0,
+            "lastFundingCheck": 1769874300000,
+            "backguardSL": null,
+            "candlesSinceEntry": 0,
+            "lastCandleTime": 1769874300000,
+            "exitPrice": 0.0872496,
+            "exitTime": 1769874600000,
+            "pnl": 0.8107371304645515,
+            "commission": 0.011999999999999999,
+            "funding": 0,
+            "reason": "Trailing Stop",
+            "roi": 8.107371304645515
           }
         ],
         "position": null,
         "pendingReEntry": {
           "neededSignal": "Sell",
-          "entryPrice": 0.08759436219622656
+          "entryPrice": 0.0872496
         },
         "startTime": 1769829534040
       }

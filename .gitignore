@@ -3,3 +3,4 @@ node_modules/
 .DS_Store
 nul
 data/bot_state.json
+bot_state.json
