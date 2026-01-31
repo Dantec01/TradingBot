@@ -1360,6 +1360,29 @@ async function stopRealBot(symbol) {
     }
 }
 
+async function stopRealBot(symbol) {
+    if (!confirm(`¿Detener REAL BOT para ${symbol}? Se guardará el historial.`)) return;
+    try {
+        await fetch('/api/real-bot/pair/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol })
+        });
+        refreshRealActiveBots();
+        setTimeout(refreshRealBotHistory, 1000);
+        logRealBotEvent(`[SISTEMA] Real Bot ${symbol} detenido.`);
+    } catch (err) {
+        alert("Error: " + err.message);
+    }
+}
+
+function clearRealBotLogs() {
+    const logContainer = document.getElementById('real-log');
+    if (logContainer) {
+        logContainer.innerHTML = '<span style="color: #666;">Logs limpiados. Esperando nuevos eventos...</span>';
+    }
+}
+
 async function stopAllRealBots() {
     if (!confirm("¿Detener TODOS los bots REALES?")) return;
     try {
