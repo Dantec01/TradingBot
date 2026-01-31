@@ -140,7 +140,7 @@ async function loadVersion() {
         const data = await res.json();
         const versionEl = document.getElementById('app-version');
         if (versionEl && data.commit) {
-            versionEl.innerText = `HYDRA Trading Bot v${data.commit} (${data.date})`;
+            versionEl.innerText = `HYDRA v${data.commit} (${data.date}) — ${data.message || 'No message'}`;
         }
     } catch (e) {
         const versionEl = document.getElementById('app-version');

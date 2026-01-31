@@ -183,9 +183,10 @@ app.get('/api/version', (req, res) => {
     try {
         const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
         const commitDate = execSync('git log -1 --format=%cd --date=short').toString().trim();
-        res.json({ commit: commitHash, date: commitDate });
+        const commitMsg = execSync('git log -1 --format=%s').toString().trim();
+        res.json({ commit: commitHash, date: commitDate, message: commitMsg });
     } catch (err) {
-        res.json({ commit: 'unknown', date: '' });
+        res.json({ commit: 'unknown', date: '', message: '' });
     }
 });
 
