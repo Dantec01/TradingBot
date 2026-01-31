@@ -4,3 +4,5 @@ node_modules/
 nul
 data/bot_state.json
 bot_state.json
+data/bot_history.json
+bot_history.json
