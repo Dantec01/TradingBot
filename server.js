@@ -98,14 +98,13 @@ app.get('/api/bot/history/export', (req, res) => {
         allTrades.sort((a, b) => b.entryTime - a.entryTime);
 
         // Generate CSV
-        const headers = ['Symbol', 'Type', 'Entry Time', 'Exit Time', 'Entry Price', 'Exit Price', 'Size', 'PnL', 'Reason'];
+        const headers = ['Symbol', 'Type', 'Entry Time', 'Exit Time', 'Entry Price', 'Exit Price', 'Offset', 'Size', 'PnL', 'Commission', 'Funding', 'Reason'];
         const csvRows = [headers.join(',')];
 
         allTrades.forEach(trade => {
             const entryTime = new Date(trade.entryTime).toLocaleString();
             const exitTime = trade.exitTime ? new Date(trade.exitTime).toLocaleString() : 'Open';
             const symbol = trade.symbol || trade.sessionParam || 'Unknown';
-            // Use full precision, simple string start
             const row = [
                 symbol,
                 trade.type,
@@ -113,8 +112,11 @@ app.get('/api/bot/history/export', (req, res) => {
                 `"${exitTime}"`,
                 trade.entryPrice,
                 trade.exitPrice || '',
+                trade.eliteTickOffset || 0,
                 trade.size,
                 trade.pnl || 0,
+                trade.commission || 0,
+                trade.funding || 0,
                 `"${trade.reason || ''}"`
             ];
             csvRows.push(row.join(','));

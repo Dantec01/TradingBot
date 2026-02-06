@@ -465,14 +465,17 @@ function renderResults(data) {
         // Badge
         const badgeClass = t.type === 'LONG' ? 'badge-long' : 'badge-short';
 
+        // Use 5 decimals for low-price coins, 4 for others
+        const priceDecimals = t.entryPrice < 1 ? 5 : 4;
+
         tr.innerHTML = `
             <td>${formatDate(entDate)}</td>
             <td>${formatTime(entDate)}</td>
             <td>${formatDate(exitDate)}</td>
             <td>${formatTime(exitDate)}</td>
             <td><span class="badge ${badgeClass}">${t.type}</span></td>
-            <td>${t.entryPrice.toFixed(4)}</td>
-            <td>${t.exitPrice.toFixed(4)}</td>
+            <td>${t.entryPrice.toFixed(priceDecimals)}</td>
+            <td>${t.exitPrice.toFixed(priceDecimals)}</td>
             <td style="color: #888;">$${(t.commission || 0).toFixed(3)}</td>
             <td style="color: ${(t.funding || 0) < 0 ? '#00e676' : '#888'};">$${(t.funding || 0).toFixed(3)}</td>
             <td class="${pnlClass}" style="font-weight:bold;">$${t.pnl.toFixed(2)}</td>
@@ -629,12 +632,13 @@ function drawChart(candles, trades) {
         const snappedExit = findCandleTime(exitTimeSec);
 
         if (snappedExit !== -1) {
+            const priceDecimals = t.exitPrice < 1 ? 5 : 4;
             markers.push({
                 time: snappedExit,
                 position: t.type === 'LONG' ? 'aboveBar' : 'belowBar',
                 color: t.pnl > 0 ? '#00e676' : '#ff1744',
                 shape: 'circle',
-                text: `$${t.pnl.toFixed(2)} (${t.exitPrice.toFixed(4)}) [${t.reason}]`
+                text: `$${t.pnl.toFixed(2)} (${t.exitPrice.toFixed(priceDecimals)}) [${t.reason}]`
             });
         }
     });
