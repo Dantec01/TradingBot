@@ -865,7 +865,7 @@ async function refreshActiveBots() {
 
         if (bots.length === 0) {
             tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay monedas en seguimiento</td></tr>';
-            tradesBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Esperando primer trade...</td></tr>';
+            tradesBody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Esperando primer trade...</td></tr>';
             return;
         }
 
@@ -934,16 +934,20 @@ async function refreshActiveBots() {
                 const tr = document.createElement('tr');
                 const timeStr = new Date(t.exitTime).toLocaleTimeString();
                 const pnlClass = t.pnl >= 0 ? 'text-green' : 'text-red';
+                // Dynamic decimal places based on price magnitude
+                const priceDecimals = t.entryPrice < 1 ? 5 : (t.entryPrice < 100 ? 4 : 2);
+                const offsetValue = t.eliteTickOffset || 0;
 
                 tr.innerHTML = `
                     <td style="color: #888;">${timeStr}</td>
                     <td><strong>${t.symbol}</strong></td>
                     <td><span class="badge ${t.type === 'LONG' ? 'badge-long' : 'badge-short'}">${t.type}</span></td>
-                    <td>${t.entryPrice.toFixed(2)}</td>
-                    <td>${t.exitPrice.toFixed(2)}</td>
-                    <td style="color: #888;">$${(t.commission || 0).toFixed(3)}</td>
-                    <td style="color: #888;">$${(t.funding || 0).toFixed(3)}</td>
-                    <td class="${pnlClass}">$${t.pnl.toFixed(2)}</td>
+                    <td>${t.entryPrice.toFixed(priceDecimals)}</td>
+                    <td>${t.exitPrice.toFixed(priceDecimals)}</td>
+                    <td style="color: #9c27b0; font-size: 0.8rem;">${offsetValue > 0 ? offsetValue.toFixed(5) : '-'}</td>
+                    <td style="color: #888;">$${(t.commission || 0).toFixed(4)}</td>
+                    <td style="color: #888;">$${(t.funding || 0).toFixed(4)}</td>
+                    <td class="${pnlClass}">$${t.pnl.toFixed(4)}</td>
                     <td style="color: #666; font-size: 0.8rem;">${t.reason}</td>
                 `;
                 tradesBody.appendChild(tr);
@@ -1258,7 +1262,7 @@ async function refreshRealActiveBots() {
 
         if (bots.length === 0) {
             tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay monedas en seguimiento</td></tr>';
-            tradesBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Esperando primer trade...</td></tr>';
+            tradesBody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Esperando primer trade...</td></tr>';
             return;
         }
 
@@ -1329,16 +1333,20 @@ async function refreshRealActiveBots() {
                 const tr = document.createElement('tr');
                 const timeStr = new Date(t.exitTime).toLocaleTimeString();
                 const pnlClass = t.pnl >= 0 ? 'text-green' : 'text-red';
+                // Dynamic decimal places based on price magnitude
+                const priceDecimals = t.entryPrice < 1 ? 5 : (t.entryPrice < 100 ? 4 : 2);
+                const offsetValue = t.eliteTickOffset || 0;
 
                 tr.innerHTML = `
                     <td style="color: #888;">${timeStr}</td>
                     <td><strong>${t.symbol}</strong></td>
                     <td><span class="badge ${t.type === 'LONG' ? 'badge-long' : 'badge-short'}">${t.type}</span></td>
-                    <td>${t.entryPrice.toFixed(2)}</td>
-                    <td>${t.exitPrice.toFixed(2)}</td>
-                    <td style="color: #888;">$${(t.commission || 0).toFixed(3)}</td>
-                    <td style="color: #888;">$${(t.funding || 0).toFixed(3)}</td>
-                    <td class="${pnlClass}">$${t.pnl.toFixed(2)}</td>
+                    <td>${t.entryPrice.toFixed(priceDecimals)}</td>
+                    <td>${t.exitPrice.toFixed(priceDecimals)}</td>
+                    <td style="color: #9c27b0; font-size: 0.8rem;">${offsetValue > 0 ? offsetValue.toFixed(5) : '-'}</td>
+                    <td style="color: #888;">$${(t.commission || 0).toFixed(4)}</td>
+                    <td style="color: #888;">$${(t.funding || 0).toFixed(4)}</td>
+                    <td class="${pnlClass}">$${t.pnl.toFixed(4)}</td>
                     <td style="color: #666; font-size: 0.8rem;">${t.reason}</td>
                 `;
                 tradesBody.appendChild(tr);
