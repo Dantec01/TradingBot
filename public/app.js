@@ -1694,6 +1694,10 @@ function exportBotHistory() {
     window.location.href = '/api/bot/history/export';
 }
 
+function exportRealBotHistory() {
+    window.location.href = '/api/real-bot/history/export';
+}
+
 function logBotEvent(msg) {
     const log = document.getElementById('live-log');
     const resDiv = document.getElementById('live-results');

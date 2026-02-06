@@ -132,6 +132,68 @@ app.get('/api/bot/history/export', (req, res) => {
     }
 });
 
+// Real Bot History Export
+app.get('/api/real-bot/history/export', (req, res) => {
+    try {
+        const history = realBotManager.getHistory();
+        const activeBots = realBotManager.getStatus().bots || [];
+
+        let allTrades = [];
+
+        // From History Sessions
+        history.forEach(session => {
+            if (Array.isArray(session.trades)) {
+                allTrades = allTrades.concat(session.trades.map(t => ({ ...t, sessionParam: session.symbol })));
+            }
+        });
+
+        // From Active Bots
+        activeBots.forEach(bot => {
+            if (Array.isArray(bot.trades)) {
+                allTrades = allTrades.concat(bot.trades.map(t => ({ ...t, sessionParam: bot.symbol })));
+            }
+        });
+
+        // Sort by entry time
+        allTrades.sort((a, b) => b.entryTime - a.entryTime);
+
+        // Generate CSV
+        const headers = ['Symbol', 'Type', 'Entry Time', 'Exit Time', 'Entry Price', 'Exit Price', 'Offset', 'Size', 'PnL', 'Commission', 'Funding', 'Reason'];
+        const csvRows = [headers.join(',')];
+
+        allTrades.forEach(trade => {
+            const entryTime = new Date(trade.entryTime).toLocaleString();
+            const exitTime = trade.exitTime ? new Date(trade.exitTime).toLocaleString() : 'Open';
+            const symbol = trade.symbol || trade.sessionParam || 'Unknown';
+            const row = [
+                symbol,
+                trade.type,
+                `"${entryTime}"`,
+                `"${exitTime}"`,
+                trade.entryPrice,
+                trade.exitPrice || '',
+                trade.eliteTickOffset || 0,
+                trade.size,
+                trade.pnl || 0,
+                trade.commission || 0,
+                trade.funding || 0,
+                `"${trade.reason || ''}"`
+            ];
+            csvRows.push(row.join(','));
+        });
+
+        const csvString = csvRows.join('\n');
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="real_bot_trades_history.csv"');
+        res.send(csvString);
+
+    } catch (error) {
+        console.error('Real Bot Export error:', error);
+        res.status(500).send('Error generating CSV');
+    }
+});
+
 // Real Bot Management (Exact Mirror for BOT 01)
 app.post('/api/real-bot/pair/add', async (req, res) => {
     try {
