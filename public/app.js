@@ -1287,6 +1287,12 @@ async function refreshRealActiveBots() {
             let posBadge = '';
             if (bot.position) {
                 posBadge = `<span class="badge ${bot.position.type === 'LONG' ? 'badge-long' : 'badge-short'}">${bot.position.type}</span>`;
+            } else if (bot.waitingForLimitFill) {
+                const signal = bot.waitingForLimitFill.type;
+                posBadge = `<span class="badge" style="background: rgba(33, 150, 243, 0.2); color: #2196f3;">LIMIT ${signal}</span>`;
+            } else if (bot.pendingVirtualOrder) {
+                const signal = bot.pendingVirtualOrder.type;
+                posBadge = `<span class="badge" style="background: rgba(156, 39, 176, 0.2); color: #ce93d8;">VIRTUAL ${signal}</span>`;
             } else if (bot.pendingReEntry) {
                 const signal = bot.pendingReEntry.neededSignal === 'Buy' ? 'LONG' : 'SHORT';
                 posBadge = `<span class="badge" style="background: rgba(255, 171, 0, 0.2); color: #ffab00;">ESPERANDO ${signal}</span>`;
