@@ -410,6 +410,7 @@ async function runBacktest() {
         if (!res.ok) throw new Error(await res.text());
 
         const data = await res.json();
+        lastBacktestData = data;
         renderResults(data);
 
     } catch (err) {
@@ -1695,6 +1696,53 @@ async function clearBotHistory() {
     } catch (err) {
         alert("Error: " + err.message);
     }
+}
+
+// Store last backtest result for CSV export
+let lastBacktestData = null;
+
+function exportBacktestCSV() {
+    if (!lastBacktestData || !lastBacktestData.trades || lastBacktestData.trades.length === 0) {
+        alert('No hay datos de backtest para exportar. Ejecuta un backtest primero.');
+        return;
+    }
+
+    const trades = lastBacktestData.trades;
+    const headers = ['No', 'Tipo', 'Entrada Precio', 'Entrada Fecha', 'Entrada Hora', 'Salida Precio', 'Salida Fecha', 'Salida Hora', 'Comision', 'Funding', 'PnL', 'Razon'];
+    const csvRows = [headers.join(',')];
+
+    trades.forEach((t, i) => {
+        const entDate = new Date(t.entryTime);
+        const exitDate = new Date(t.exitTime);
+        const formatDate = (d) => d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const formatTime = (d) => d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const priceDecimals = t.entryPrice < 1 ? 5 : 4;
+
+        const row = [
+            i + 1,
+            t.type,
+            t.entryPrice.toFixed(priceDecimals),
+            formatDate(entDate),
+            formatTime(entDate),
+            t.exitPrice.toFixed(priceDecimals),
+            formatDate(exitDate),
+            formatTime(exitDate),
+            (t.commission || 0).toFixed(4),
+            (t.funding || 0).toFixed(4),
+            t.pnl.toFixed(4),
+            `"${t.reason || ''}"`
+        ];
+        csvRows.push(row.join(','));
+    });
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `backtest_${Date.now()}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
 }
 
 function exportBotHistory() {

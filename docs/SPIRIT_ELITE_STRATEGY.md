@@ -44,7 +44,7 @@ El trade se cierra si:
 ## 4. Re-Entradas (The "Spirit" Component)
 Si el bot es sacado por un Stop Loss pero la señal original sigue vigente:
 *   **Acción:** Re-entrar en la misma dirección.
-*   **Método:** **Orden LÍMITE** al precio de salida anterior.
+*   **ya no se usa ahora se usa market - Método:** **Orden LÍMITE** al precio de salida anterior.
     *   *Ejemplo:* Si nos saca un SL en 100.00 (Long), ponemos una orden de compra límite en 100.00. Solo si el precio baja a 100.00 de nuevo, volvemos a entrar.
 
 ---
