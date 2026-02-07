@@ -936,14 +936,16 @@ async function refreshActiveBots() {
             tradesBody.innerHTML = '';
             allLiveTrades.slice(0, 50).forEach(t => { // Show last 50
                 const tr = document.createElement('tr');
-                const timeStr = new Date(t.exitTime).toLocaleTimeString();
+                const entryStr = new Date(t.entryTime).toLocaleTimeString();
+                const exitStr = new Date(t.exitTime).toLocaleTimeString();
                 const pnlClass = t.pnl >= 0 ? 'text-green' : 'text-red';
                 // Dynamic decimal places based on price magnitude
                 const priceDecimals = t.entryPrice < 1 ? 5 : (t.entryPrice < 100 ? 4 : 2);
                 const offsetValue = t.eliteTickOffset || 0;
 
                 tr.innerHTML = `
-                    <td style="color: #888;">${timeStr}</td>
+                    <td style="color: #888;">${entryStr}</td>
+                    <td style="color: #888;">${exitStr}</td>
                     <td><strong>${t.symbol}</strong></td>
                     <td><span class="badge ${t.type === 'LONG' ? 'badge-long' : 'badge-short'}">${t.type}</span></td>
                     <td>${t.entryPrice.toFixed(priceDecimals)}</td>
@@ -1266,7 +1268,7 @@ async function refreshRealActiveBots() {
 
         if (bots.length === 0) {
             tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hay monedas en seguimiento</td></tr>';
-            tradesBody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Esperando primer trade...</td></tr>';
+            tradesBody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Esperando primer trade...</td></tr>';
             return;
         }
 
@@ -1335,14 +1337,16 @@ async function refreshRealActiveBots() {
             tradesBody.innerHTML = '';
             allLiveTrades.slice(0, 50).forEach(t => {
                 const tr = document.createElement('tr');
-                const timeStr = new Date(t.exitTime).toLocaleTimeString();
+                const entryStr = new Date(t.entryTime).toLocaleTimeString();
+                const exitStr = new Date(t.exitTime).toLocaleTimeString();
                 const pnlClass = t.pnl >= 0 ? 'text-green' : 'text-red';
                 // Dynamic decimal places based on price magnitude
                 const priceDecimals = t.entryPrice < 1 ? 5 : (t.entryPrice < 100 ? 4 : 2);
                 const offsetValue = t.eliteTickOffset || 0;
 
                 tr.innerHTML = `
-                    <td style="color: #888;">${timeStr}</td>
+                    <td style="color: #888;">${entryStr}</td>
+                    <td style="color: #888;">${exitStr}</td>
                     <td><strong>${t.symbol}</strong></td>
                     <td><span class="badge ${t.type === 'LONG' ? 'badge-long' : 'badge-short'}">${t.type}</span></td>
                     <td>${t.entryPrice.toFixed(priceDecimals)}</td>
