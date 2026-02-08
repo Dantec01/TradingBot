@@ -961,6 +961,11 @@ async function refreshActiveBots() {
             });
         }
 
+        // Update paper bot console logs (mirror events, etc.)
+        if (data.logs && data.logs.length > 0) {
+            updatePaperBotLog(data.logs);
+        }
+
     } catch (err) {
         console.error("Error refreshing bots:", err);
     }
@@ -1764,4 +1769,23 @@ function logBotEvent(msg) {
     entry.style.marginBottom = '4px';
     entry.innerText = `[${time}] ${msg}`;
     log.prepend(entry);
+}
+
+function updatePaperBotLog(logs) {
+    const logContainer = document.getElementById('live-log');
+    const resultsDiv = document.getElementById('live-results');
+    if (!logContainer || !resultsDiv) return;
+    resultsDiv.style.display = 'block';
+    if (!logs || logs.length === 0) return;
+
+    logContainer.innerHTML = logs.slice(0, 50).map(log => {
+        let color = '#aaa';
+        if (log.level === 'ERROR') color = '#ff1744';
+        else if (log.level === 'WARN') color = '#ffab00';
+        else if (log.level === 'SUCCESS') color = '#00e676';
+        else if (log.level === 'INFO') color = '#2196f3';
+
+        const time = new Date(log.time).toLocaleTimeString();
+        return `<div style="color: ${color}; margin-bottom: 4px;">[${time}] ${log.message}</div>`;
+    }).join('');
 }

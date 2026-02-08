@@ -201,6 +201,20 @@ app.post('/api/real-bot/pair/add', async (req, res) => {
     try {
         const config = req.body;
         const status = await realBotManager.addPair(config);
+
+        // SPIRIT_TEST Mirror Mode: Link real bot to paper bot
+        if (config.strategy === 'SPIRIT_TEST') {
+            const symbol = config.symbol.toUpperCase();
+            const paperEngine = botManager.getEngine(symbol);
+            const realEngine = realBotManager.getEngine(symbol);
+            if (paperEngine && realEngine) {
+                realEngine.linkToPaperBot(paperEngine);
+                console.log(`[Server] SPIRIT_TEST Mirror: Linked ${symbol} real↔paper`);
+            } else {
+                console.warn(`[Server] SPIRIT_TEST Mirror: Paper bot for ${symbol} not found. Real bot won't receive signals.`);
+            }
+        }
+
         res.json({ success: true, status });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -209,6 +223,11 @@ app.post('/api/real-bot/pair/add', async (req, res) => {
 
 app.post('/api/real-bot/pair/remove', (req, res) => {
     const { symbol } = req.body;
+    // Unlink mirror mode before removing
+    const realEngine = realBotManager.getEngine(symbol);
+    if (realEngine && realEngine.mirrorMode) {
+        realEngine.unlinkFromPaperBot();
+    }
     const success = realBotManager.removePair(symbol);
     res.json({ success });
 });
@@ -258,4 +277,19 @@ app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
     botManager.loadState();
     realBotManager.loadState();
+
+    // Re-link SPIRIT_TEST mirror connections after state restore
+    setTimeout(() => {
+        for (const [symbol, realEngine] of realBotManager.instances || []) {
+            if (realEngine.mirrorMode) {
+                const paperEngine = botManager.getEngine(symbol);
+                if (paperEngine) {
+                    realEngine.linkToPaperBot(paperEngine);
+                    console.log(`[Server] SPIRIT_TEST Mirror restored: ${symbol}`);
+                } else {
+                    console.warn(`[Server] SPIRIT_TEST Mirror: Paper bot for ${symbol} not running. Mirror inactive.`);
+                }
+            }
+        }
+    }, 3000); // Wait for bots to finish initializing
 });
