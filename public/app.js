@@ -1660,12 +1660,12 @@ function setupSpiritShieldLock() {
     const liveStrat = document.getElementById('live-strategy');
     if (liveStrat) {
         liveStrat.addEventListener('change', () => {
-            toggleSLFields('live-', liveStrat.value === 'SPIRIT_SHIELD' || liveStrat.value === 'SPIRIT_ELITE');
+            toggleSLFields('live-', liveStrat.value === 'SPIRIT_SHIELD' || liveStrat.value === 'SPIRIT_ELITE' || liveStrat.value === 'SPIRIT_TEST');
 
             // Show/hide elite config for Paper (Live) Bot
             const liveEliteConfig = document.getElementById('live-eliteConfig');
             if (liveEliteConfig) {
-                liveEliteConfig.style.display = liveStrat.value === 'SPIRIT_ELITE' ? 'block' : 'none';
+                liveEliteConfig.style.display = (liveStrat.value === 'SPIRIT_ELITE' || liveStrat.value === 'SPIRIT_TEST') ? 'block' : 'none';
             }
         });
     }
@@ -1674,13 +1674,13 @@ function setupSpiritShieldLock() {
     const realStratSelect = document.getElementById('real-strategy');
     if (realStratSelect) {
         realStratSelect.addEventListener('change', () => {
-            const isEliteOrShield = realStratSelect.value === 'SPIRIT_SHIELD' || realStratSelect.value === 'SPIRIT_ELITE';
+            const isEliteOrShield = realStratSelect.value === 'SPIRIT_SHIELD' || realStratSelect.value === 'SPIRIT_ELITE' || realStratSelect.value === 'SPIRIT_TEST';
             toggleSLFields('real-', isEliteOrShield);
 
             // Show/hide elite config for Real Bot
             const realEliteConfig = document.getElementById('real-eliteConfig');
             if (realEliteConfig) {
-                realEliteConfig.style.display = realStratSelect.value === 'SPIRIT_ELITE' ? 'block' : 'none';
+                realEliteConfig.style.display = (realStratSelect.value === 'SPIRIT_ELITE' || realStratSelect.value === 'SPIRIT_TEST') ? 'block' : 'none';
             }
         });
     }
