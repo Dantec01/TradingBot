@@ -390,6 +390,7 @@ async function runBacktest() {
         trailingPct: document.getElementById('trailingPct').value,
         startDate: document.getElementById('startDate').value,
         endDate: document.getElementById('endDate').value,
+        timezoneOffset: new Date().getTimezoneOffset(), // Client's UTC offset in minutes (e.g. 240 for UTC-4)
         takerFee: document.getElementById('takerFee').value,
         // SPIRIT_ELITE Config
         eliteActivationPct: (parseFloat(document.getElementById('eliteActivationPct')?.value) || 0.2) / 100, // Convert % to decimal
