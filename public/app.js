@@ -803,7 +803,9 @@ async function runBot() {
         // SPIRIT_ELITE Config
         eliteActivationPct: (parseFloat(document.getElementById('live-eliteActivationPct')?.value) || 0.2) / 100,
         eliteTickOffset: parseFloat(document.getElementById('live-eliteTickOffset')?.value) || 0.0001,
-        eliteTrailingDefer: parseFloat(document.getElementById('live-eliteTrailingDefer')?.value) || 5
+        eliteTrailingDefer: parseFloat(document.getElementById('live-eliteTrailingDefer')?.value) || 5,
+        // SPIRIT_TEST Instant Entry
+        instantEntry: document.getElementById('live-instantEntry')?.checked || false
     };
 
     saveRecentSymbol(config.symbol);
@@ -1109,16 +1111,18 @@ function handleStopExclusionReal(type) {
 }
 
 function updateUsdtValuesReal() {
-    const cap = parseFloat(document.getElementById('real-orderSize').value) || 0;
+    const margin = parseFloat(document.getElementById('real-orderSize').value) || 0;
+    const lev = parseFloat(document.getElementById('real-leverage').value) || 1;
+    const positionSize = margin * lev;
 
     // Fixed SL Value
     const slPct = parseFloat(document.getElementById('real-stopLossPct').value) || 0;
-    const fixedUsdt = (cap * (slPct / 100)).toFixed(2);
+    const fixedUsdt = (positionSize * (slPct / 100)).toFixed(2);
     document.getElementById('real-fixedUsdt').innerText = `${fixedUsdt} USDT`;
 
-    // Trailing SL Value (Estimate based on gap)
-    const trainlingPct = parseFloat(document.getElementById('real-trailingPct').value) || 0;
-    const trailingUsdt = (cap * (trainlingPct / 100)).toFixed(2);
+    // Trailing SL Value
+    const trailingPct = parseFloat(document.getElementById('real-trailingPct').value) || 0;
+    const trailingUsdt = (positionSize * (trailingPct / 100)).toFixed(2);
     document.getElementById('real-trailingUsdt').innerText = `${trailingUsdt} USDT`;
 }
 
@@ -1196,7 +1200,9 @@ async function runRealBot() {
         // SPIRIT_ELITE Config
         eliteActivationPct: (parseFloat(document.getElementById('real-eliteActivationPct')?.value) || 0.2) / 100,
         eliteTickOffset: parseFloat(document.getElementById('real-eliteTickOffset')?.value) || 0.0001,
-        eliteTrailingDefer: parseFloat(document.getElementById('real-eliteTrailingDefer')?.value) || 5
+        eliteTrailingDefer: parseFloat(document.getElementById('real-eliteTrailingDefer')?.value) || 5,
+        // SPIRIT_TEST Instant Entry
+        instantEntry: document.getElementById('real-instantEntry')?.checked || false
     };
 
     saveRecentSymbol(config.symbol);
@@ -1673,6 +1679,11 @@ function setupSpiritShieldLock() {
             if (liveEliteConfig) {
                 liveEliteConfig.style.display = liveStrat.value === 'SPIRIT_ELITE' ? 'block' : 'none';
             }
+            // Show/hide instant entry for SPIRIT_TEST
+            const liveInstantEntry = document.getElementById('live-instantEntryGroup');
+            if (liveInstantEntry) {
+                liveInstantEntry.style.display = liveStrat.value === 'SPIRIT_TEST' ? 'block' : 'none';
+            }
         });
     }
 
@@ -1687,6 +1698,11 @@ function setupSpiritShieldLock() {
             const realEliteConfig = document.getElementById('real-eliteConfig');
             if (realEliteConfig) {
                 realEliteConfig.style.display = realStratSelect.value === 'SPIRIT_ELITE' ? 'block' : 'none';
+            }
+            // Show/hide instant entry for SPIRIT_TEST
+            const realInstantEntry = document.getElementById('real-instantEntryGroup');
+            if (realInstantEntry) {
+                realInstantEntry.style.display = realStratSelect.value === 'SPIRIT_TEST' ? 'block' : 'none';
             }
         });
     }
