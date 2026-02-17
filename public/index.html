@@ -154,6 +154,13 @@
                                     disabled oninput="updateUsdtValues()">
                                 <span id="trailingUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
                             </div>
+                            <div class="stop-option-row"
+                                style="display: flex; align-items: center; gap: 10px; margin-left: 30px;">
+                                <label style="width: 120px; font-size: 0.85rem;">Activación (%):</label>
+                                <input type="number" id="trailingActivation" value="0" step="0.1" style="width: 80px;"
+                                    disabled>
+                                <span style="font-size: 0.75rem; color: #888;">0 = inmediato</span>
+                            </div>
                         </div>
 
                         <!-- Row 4.1: Fees -->
@@ -253,7 +260,8 @@
 
                 <!-- Trades History -->
                 <div class="card" style="margin-top: 2rem; padding: 0; overflow: hidden;">
-                    <div style="padding: 1.5rem 1.5rem 0.5rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div
+                        style="padding: 1.5rem 1.5rem 0.5rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                         <h3>Historial de Operaciones</h3>
                         <button class="btn-primary" onclick="exportBacktestCSV()"
                             style="padding: 6px 16px; font-size: 0.85rem;">
@@ -398,6 +406,13 @@
                                     disabled oninput="updateUsdtValuesBot()">
                                 <span id="live-trailingUsdt" style="font-size: 0.85rem; color: #888;">0.00 USDT</span>
                             </div>
+                            <div class="stop-option-row"
+                                style="display: flex; align-items: center; gap: 10px; margin-left: 30px;">
+                                <label style="width: 120px; font-size: 0.85rem;">Activación (%):</label>
+                                <input type="number" id="live-trailingActivation" value="0" step="0.1"
+                                    style="width: 80px;" disabled>
+                                <span style="font-size: 0.75rem; color: #888;">0 = inmediato</span>
+                            </div>
                         </div>
 
                         <!-- Strategy & Direction -->
@@ -428,7 +443,8 @@
                             <label>&nbsp;</label>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <input type="checkbox" id="live-instantEntry" style="width: auto; margin: 0;">
-                                <label for="live-instantEntry" style="font-size: 0.85rem; color: #aaa;">Entrada Inmediata (usar señal actual)</label>
+                                <label for="live-instantEntry" style="font-size: 0.85rem; color: #aaa;">Entrada
+                                    Inmediata (usar señal actual)</label>
                             </div>
                         </div>
 
@@ -723,6 +739,13 @@
                                     <span id="real-trailingUsdt" style="font-size: 0.85rem; color: #888;">0.00
                                         USDT</span>
                                 </div>
+                                <div class="stop-option-row"
+                                    style="display: flex; align-items: center; gap: 10px; margin-left: 30px;">
+                                    <label style="width: 120px; font-size: 0.85rem;">Activación (%):</label>
+                                    <input type="number" id="real-trailingActivation" value="0" step="0.1"
+                                        style="width: 80px;" disabled>
+                                    <span style="font-size: 0.75rem; color: #888;">0 = inmediato</span>
+                                </div>
                             </div>
 
                             <div class="form-group">
@@ -752,7 +775,8 @@
                                 <label>&nbsp;</label>
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <input type="checkbox" id="real-instantEntry" style="width: auto; margin: 0;">
-                                    <label for="real-instantEntry" style="font-size: 0.85rem; color: #ffeb3b;">Entrada Inmediata (usar señal actual)</label>
+                                    <label for="real-instantEntry" style="font-size: 0.85rem; color: #ffeb3b;">Entrada
+                                        Inmediata (usar señal actual)</label>
                                 </div>
                             </div>
 

@@ -140,11 +140,11 @@ async function loadVersion() {
         const data = await res.json();
         const versionEl = document.getElementById('app-version');
         if (versionEl && data.commit) {
-            versionEl.innerText = `HYDRA v${data.commit} — no mirror v2 mirro solo reversal`;
+            versionEl.innerText = `HYDRA v${data.commit} — no mirror v3 activacion trailing`;
         }
     } catch (e) {
         const versionEl = document.getElementById('app-version');
-        if (versionEl) versionEl.innerText = 'HYDRA Trading Bot — no mirror v2 mirro solo reversal';
+        if (versionEl) versionEl.innerText = 'HYDRA Trading Bot — no mirror v3 activacion trailing';
     }
 }
 
@@ -330,6 +330,7 @@ function handleStopExclusion(type) {
     // Enable/Disable inputs
     document.getElementById('stopLossPct').disabled = !fixed.checked;
     document.getElementById('trailingPct').disabled = !trailing.checked;
+    document.getElementById('trailingActivation').disabled = !trailing.checked;
 
     updateUsdtValues();
 }
@@ -388,6 +389,7 @@ async function runBacktest() {
         strategy: document.getElementById('strategy').value,
         slMode: derivedMode,
         trailingPct: document.getElementById('trailingPct').value,
+        trailingActivation: document.getElementById('trailingActivation').value,
         startDate: document.getElementById('startDate').value,
         endDate: document.getElementById('endDate').value,
         timezoneOffset: new Date().getTimezoneOffset(), // Client's UTC offset in minutes (e.g. 240 for UTC-4)
@@ -760,6 +762,7 @@ function handleStopExclusionBot(type) {
 
     document.getElementById('live-stopLossPct').disabled = !fixed.checked;
     document.getElementById('live-trailingPct').disabled = !trailing.checked;
+    document.getElementById('live-trailingActivation').disabled = !trailing.checked;
 
     updateUsdtValuesBot();
 }
@@ -799,6 +802,7 @@ async function runBot() {
         strategy: document.getElementById('live-strategy').value,
         slMode: derivedMode,
         trailingPct: document.getElementById('live-trailingPct').value,
+        trailingActivation: document.getElementById('live-trailingActivation').value,
         mode: document.getElementById('live-mode').value,
         // SPIRIT_ELITE Config
         eliteActivationPct: (parseFloat(document.getElementById('live-eliteActivationPct')?.value) || 0.2) / 100,
@@ -1096,16 +1100,19 @@ function handleStopExclusionReal(type) {
         trailing.checked = false;
         document.getElementById('real-stopLossPct').disabled = false;
         document.getElementById('real-trailingPct').disabled = true;
+        document.getElementById('real-trailingActivation').disabled = true;
     } else if (type === 'BREAKEVEN' && breakeven.checked) {
         fixed.checked = false;
         trailing.checked = false;
         document.getElementById('real-stopLossPct').disabled = true;
         document.getElementById('real-trailingPct').disabled = true;
+        document.getElementById('real-trailingActivation').disabled = true;
     } else if (type === 'TRAILING' && trailing.checked) {
         fixed.checked = false;
         breakeven.checked = false;
         document.getElementById('real-stopLossPct').disabled = true;
         document.getElementById('real-trailingPct').disabled = false;
+        document.getElementById('real-trailingActivation').disabled = false;
     }
     updateUsdtValuesReal();
 }
@@ -1196,6 +1203,7 @@ async function runRealBot() {
         strategy: document.getElementById('real-strategy').value,
         slMode: derivedMode,
         trailingPct: document.getElementById('real-trailingPct').value,
+        trailingActivation: document.getElementById('real-trailingActivation').value,
         mode: document.getElementById('real-mode').value,
         // SPIRIT_ELITE Config
         eliteActivationPct: (parseFloat(document.getElementById('real-eliteActivationPct')?.value) || 0.2) / 100,
