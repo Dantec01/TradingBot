@@ -140,11 +140,11 @@ async function loadVersion() {
         const data = await res.json();
         const versionEl = document.getElementById('app-version');
         if (versionEl && data.commit) {
-            versionEl.innerText = `HYDRA v${data.commit} — no mirror v3 activacion trailing`;
+            versionEl.innerText = `HYDRA v${data.commit} — no mirror v3 activacion trailing fix`;
         }
     } catch (e) {
         const versionEl = document.getElementById('app-version');
-        if (versionEl) versionEl.innerText = 'HYDRA Trading Bot — no mirror v3 activacion trailing';
+        if (versionEl) versionEl.innerText = 'HYDRA Trading Bot — no mirror v3 activacion trailing fix';
     }
 }
 
