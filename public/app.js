@@ -140,11 +140,11 @@ async function loadVersion() {
         const data = await res.json();
         const versionEl = document.getElementById('app-version');
         if (versionEl && data.commit) {
-            versionEl.innerText = `HYDRA v${data.commit} — mirror v12 fix desconexion`;
+            versionEl.innerText = `HYDRA v${data.commit} — limpio v1 reescrito todo test real`;
         }
     } catch (e) {
         const versionEl = document.getElementById('app-version');
-        if (versionEl) versionEl.innerText = 'HYDRA Trading Bot — mirror v12 fix desconexion';
+        if (versionEl) versionEl.innerText = 'HYDRA Trading Bot — limpio v1 reescrito todo test real';
     }
 }
 
@@ -1380,6 +1380,42 @@ async function refreshRealActiveBots() {
                 `;
                 tradesBody.appendChild(tr);
             });
+        }
+
+        // Trailing Stop Debug Table
+        const trailingCard = document.getElementById('trailingDebugCard');
+        const trailingBody = document.getElementById('trailingDebugBody');
+        if (trailingCard && trailingBody) {
+            const trailingRows = [];
+            bots.forEach(bot => {
+                const td = bot.trailingDebug;
+                if (!td) return;
+                const dec = td.entryPrice < 1 ? 7 : 4;
+                const pnlRaw = td.type === 'LONG'
+                    ? (td.currentPrice - td.entryPrice) * 100 / td.entryPrice
+                    : (td.entryPrice - td.currentPrice) * 100 / td.entryPrice;
+                const pnlColor = pnlRaw >= 0 ? '#00e676' : '#ff5252';
+                const statusBadge = td.activationReached
+                    ? `<span style="background: rgba(0,230,118,0.2); color:#00e676; padding:2px 6px; border-radius:4px; font-size:0.75rem;">ACTIVO ✅</span>`
+                    : `<span style="background: rgba(255,171,0,0.2); color:#ffab00; padding:2px 6px; border-radius:4px; font-size:0.75rem;">ESPERANDO</span>`;
+                trailingRows.push(`<tr>
+                    <td><strong>${bot.symbol}</strong></td>
+                    <td><span class="badge ${td.type === 'LONG' ? 'badge-long' : 'badge-short'}">${td.type}</span></td>
+                    <td>${td.entryPrice.toFixed(dec)}</td>
+                    <td style="color:#2196f3;">${td.activationTarget.toFixed(dec)}</td>
+                    <td style="color:#00e676;">${td.highestPrice.toFixed(dec)}</td>
+                    <td style="color:#ff5252;">${td.lowestPrice.toFixed(dec)}</td>
+                    <td style="color:#ce93d8; font-weight:bold;">${td.stopLevel.toFixed(dec)}</td>
+                    <td style="color:${pnlColor};">${td.currentPrice.toFixed(dec)} (${pnlRaw >= 0 ? '+' : ''}${pnlRaw.toFixed(3)}%)</td>
+                    <td>${statusBadge}</td>
+                </tr>`);
+            });
+            if (trailingRows.length > 0) {
+                trailingCard.style.display = '';
+                trailingBody.innerHTML = trailingRows.join('');
+            } else {
+                trailingCard.style.display = 'none';
+            }
         }
 
     } catch (err) {

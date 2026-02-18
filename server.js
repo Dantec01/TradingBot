@@ -202,17 +202,13 @@ app.post('/api/real-bot/pair/add', async (req, res) => {
         const config = req.body;
         const status = await realBotManager.addPair(config);
 
-        // SPIRIT_TEST Mirror Mode: Link real bot to paper bot
-        if (config.strategy === 'SPIRIT_TEST') {
-            const symbol = config.symbol.toUpperCase();
-            const paperEngine = botManager.getEngine(symbol);
-            const realEngine = realBotManager.getEngine(symbol);
-            if (paperEngine && realEngine) {
-                realEngine.linkToPaperBot(paperEngine);
-                console.log(`[Server] SPIRIT_TEST Mirror: Linked ${symbol} real↔paper`);
-            } else {
-                console.warn(`[Server] SPIRIT_TEST Mirror: Paper bot for ${symbol} not found. Real bot won't receive signals.`);
-            }
+        // Link real bot to paper bot (SPIRIT_TEST returns early — independent mode)
+        const symbol = config.symbol.toUpperCase();
+        const paperEngine = botManager.getEngine(symbol);
+        const realEngine = realBotManager.getEngine(symbol);
+        if (paperEngine && realEngine) {
+            realEngine.linkToPaperBot(paperEngine);
+            console.log(`[Server] Paper↔Real linked: ${symbol} (${config.strategy})`);
         }
 
         res.json({ success: true, status });
@@ -223,9 +219,9 @@ app.post('/api/real-bot/pair/add', async (req, res) => {
 
 app.post('/api/real-bot/pair/remove', (req, res) => {
     const { symbol } = req.body;
-    // Unlink mirror mode before removing
+    // Cleanup before removing
     const realEngine = realBotManager.getEngine(symbol);
-    if (realEngine && realEngine.mirrorMode) {
+    if (realEngine) {
         realEngine.unlinkFromPaperBot();
     }
     const success = realBotManager.removePair(symbol);
@@ -278,17 +274,15 @@ app.listen(PORT, () => {
     botManager.loadState();
     realBotManager.loadState();
 
-    // Re-link SPIRIT_TEST mirror connections after state restore
+    // Re-link paper bot connections after state restore
+    // SPIRIT_TEST will return immediately from linkToPaperBot (independent mode)
+    // Other strategies will establish mirror connection
     setTimeout(() => {
         for (const [symbol, realEngine] of realBotManager.instances || []) {
-            if (realEngine.mirrorMode) {
-                const paperEngine = botManager.getEngine(symbol);
-                if (paperEngine) {
-                    realEngine.linkToPaperBot(paperEngine);
-                    console.log(`[Server] SPIRIT_TEST Mirror restored: ${symbol}`);
-                } else {
-                    console.warn(`[Server] SPIRIT_TEST Mirror: Paper bot for ${symbol} not running. Mirror inactive.`);
-                }
+            const paperEngine = botManager.getEngine(symbol);
+            if (paperEngine) {
+                realEngine.linkToPaperBot(paperEngine);
+                console.log(`[Server] Paper↔Real linked: ${symbol} (${realEngine.strategy})`);
             }
         }
     }, 3000); // Wait for bots to finish initializing
