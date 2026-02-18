@@ -1,0 +1,16 @@
+Trailing %,Activacion %,Precio Activacion (Entry 0.0567645),Ganancia Minima %,Ganancia Minima USD ($200 pos),Peor Caso,Nota
+0.1,0.1,0.056821,0.00%,$0.00,Breakeven,Trailing se coloca rapido - minimo riesgo
+0.1,0.2,0.056878,0.10%,$0.20,+$0.20,Buen balance entre proteccion y ganancia
+0.1,0.3,0.056935,0.20%,$0.40,+$0.40,Mas ganancia pero necesita mas movimiento
+0.1,0.5,0.057048,0.40%,$0.80,+$0.80,Requiere movimiento fuerte para activar
+0.1,1.0,0.057332,0.90%,$1.80,+$1.80,Solo activa en movimientos grandes
+0.2,0.2,0.056878,0.00%,$0.00,Breakeven,Trailing mas amplio - breakeven minimo
+0.2,0.3,0.056935,0.10%,$0.20,+$0.20,Buen balance con trailing 0.2%
+0.2,0.5,0.057048,0.30%,$0.60,+$0.60,Ganancia moderada asegurada
+0.2,1.0,0.057332,0.80%,$1.60,+$1.60,Alta ganancia pero dificil activar
+0.3,0.3,0.056935,0.00%,$0.00,Breakeven,Trailing amplio - solo breakeven
+0.3,0.5,0.057048,0.20%,$0.40,+$0.40,Balance con trailing 0.3%
+0.3,1.0,0.057332,0.70%,$1.40,+$1.40,Trailing amplio + alta activacion
+0.5,0.5,0.057048,0.00%,$0.00,Breakeven,Trailing muy amplio
+0.5,1.0,0.057332,0.50%,$1.00,+$1.00,Buena ganancia si activa
+1.0,1.0,0.057332,0.00%,$0.00,Breakeven,Trailing maximo (1%)
