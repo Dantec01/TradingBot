@@ -140,11 +140,11 @@ async function loadVersion() {
         const data = await res.json();
         const versionEl = document.getElementById('app-version');
         if (versionEl && data.commit) {
-            versionEl.innerText = `HYDRA v${data.commit} — limpio v2 entradas fix`;
+            versionEl.innerText = `HYDRA v${data.commit} — limpio v3 entradas fix gemini`;
         }
     } catch (e) {
         const versionEl = document.getElementById('app-version');
-        if (versionEl) versionEl.innerText = 'HYDRA Trading Bot — limpio v2 entradas fix';
+        if (versionEl) versionEl.innerText = 'HYDRA Trading Bot — limpio v3 entradas fix gemini';
     }
 }
 
