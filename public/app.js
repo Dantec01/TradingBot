@@ -140,11 +140,11 @@ async function loadVersion() {
         const data = await res.json();
         const versionEl = document.getElementById('app-version');
         if (versionEl && data.commit) {
-            versionEl.innerText = `HYDRA v${data.commit} — limpio v4 con gemini 3.1`;
+            versionEl.innerText = `HYDRA v${data.commit} — limpio v5 trailing nativo binance`;
         }
     } catch (e) {
         const versionEl = document.getElementById('app-version');
-        if (versionEl) versionEl.innerText = 'HYDRA Trading Bot — limpio v4 con gemini 3.1';
+        if (versionEl) versionEl.innerText = 'HYDRA Trading Bot — limpio v5 trailing nativo binance';
     }
 }
 
@@ -1210,7 +1210,8 @@ async function runRealBot() {
         eliteTickOffset: parseFloat(document.getElementById('real-eliteTickOffset')?.value) || 0.0001,
         eliteTrailingDefer: parseFloat(document.getElementById('real-eliteTrailingDefer')?.value) || 5,
         // SPIRIT_TEST Instant Entry
-        instantEntry: document.getElementById('real-instantEntry')?.checked || false
+        instantEntry: document.getElementById('real-instantEntry')?.checked || false,
+        useNativeTrailing: document.getElementById('real-useNativeTrailing')?.checked || false
     };
 
     saveRecentSymbol(config.symbol);
