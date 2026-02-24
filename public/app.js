@@ -140,11 +140,11 @@ async function loadVersion() {
         const data = await res.json();
         const versionEl = document.getElementById('app-version');
         if (versionEl && data.commit) {
-            versionEl.innerText = `HYDRA v${data.commit} — limpio v5 trailing nativo binance`;
+            versionEl.innerText = `HYDRA v${data.commit} — limpio v6 trailing + stop`;
         }
     } catch (e) {
         const versionEl = document.getElementById('app-version');
-        if (versionEl) versionEl.innerText = 'HYDRA Trading Bot — limpio v5 trailing nativo binance';
+        if (versionEl) versionEl.innerText = 'HYDRA Trading Bot — limpio v6 trailing + stop';
     }
 }
 
@@ -1095,25 +1095,20 @@ function handleStopExclusionReal(type) {
     const breakeven = document.getElementById('real-useBreakeven');
     const trailing = document.getElementById('real-useTrailing');
 
-    if (type === 'FIXED' && fixed.checked) {
-        breakeven.checked = false;
-        trailing.checked = false;
-        document.getElementById('real-stopLossPct').disabled = false;
-        document.getElementById('real-trailingPct').disabled = true;
-        document.getElementById('real-trailingActivation').disabled = true;
-    } else if (type === 'BREAKEVEN' && breakeven.checked) {
+    if (type === 'BREAKEVEN' && breakeven.checked) {
+        // Breakeven is exclusive
         fixed.checked = false;
         trailing.checked = false;
-        document.getElementById('real-stopLossPct').disabled = true;
-        document.getElementById('real-trailingPct').disabled = true;
-        document.getElementById('real-trailingActivation').disabled = true;
-    } else if (type === 'TRAILING' && trailing.checked) {
-        fixed.checked = false;
+    } else if ((type === 'FIXED' || type === 'TRAILING') && (fixed.checked || trailing.checked)) {
+        // Fixed and Trailing can coexist, but they disable Breakeven
         breakeven.checked = false;
-        document.getElementById('real-stopLossPct').disabled = true;
-        document.getElementById('real-trailingPct').disabled = false;
-        document.getElementById('real-trailingActivation').disabled = false;
     }
+
+    // Update Input States
+    document.getElementById('real-stopLossPct').disabled = !fixed.checked;
+    document.getElementById('real-trailingPct').disabled = !trailing.checked;
+    document.getElementById('real-trailingActivation').disabled = !trailing.checked;
+
     updateUsdtValuesReal();
 }
 
@@ -1201,7 +1196,10 @@ async function runRealBot() {
         leverage: document.getElementById('real-leverage').value,
         direction: document.getElementById('real-direction').value,
         strategy: document.getElementById('real-strategy').value,
-        slMode: derivedMode,
+        // SL Management Booleans
+        useFixedSL: document.getElementById('real-useFixedSL').checked,
+        useTrailing: document.getElementById('real-useTrailing').checked,
+        slMode: derivedMode, // Legacy compatibility, but new parameters take precedence
         trailingPct: document.getElementById('real-trailingPct').value,
         trailingActivation: document.getElementById('real-trailingActivation').value,
         mode: document.getElementById('real-mode').value,
